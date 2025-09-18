@@ -34,13 +34,25 @@ app.post('/connexion', (req, res) => {
     }
 
     db.query(
-        'SELECT * FROM comptes WHERE numeroCompte = ? AND motDePasse = ?',
-        [numeroCompte, motDePasse],
+        'SELECT * FROM comptes WHERE numeroCompte = ?',
+        [numeroCompte],
         (err, results) => {
             if (err) return res.status(500).json({ error: err.message })
-            if (results.length === 0)
-                return res.status(401).json({ message: "Numéro de compte ou mot de passe incorrect" })
+            if (results.length === 0){
+                return res.status(401).json({ message: "Numéro de compte n'existe pas" })
+            }else{
+              db.query(
+                'SELECT * FROM comptes WHERE numeroCompte = ? AND motDePasse = ?',
+                [numeroCompte, motDePasse],
+                (err1,results1) => {
+                  if(err1) return res.status.apply(500).json({error: err1.message})
 
+                  if(results1.length === 0){
+                    
+                  }
+                }
+              )
+            }
             res.json({ message: "Connexion réussie", compte: results[0] })
         }
     )
