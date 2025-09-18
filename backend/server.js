@@ -81,9 +81,23 @@ app.post("/connexion", (req, res) => {
 });
 
 // recuperer profil
-app.post('/profil',(req,res)=>{
-  {}
-})
+app.post('/profil', (req, res) => {
+  const { idUsers } = req.body;
+  
+  db.query(
+    'SELECT * FROM users WHERE idUser = ?',
+    [idUsers],
+    async (err, results) => {
+      if (err)
+        return res.status(500).json({ error: err.message });
+      if (results.length === 0)
+        return res.status(401).json({ message: "Utilisateur non trouvé" });
+      
+      const user = results[0];
+      return res.status(200).json(user);
+    }
+  );
+});
 
 
 
