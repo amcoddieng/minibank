@@ -99,7 +99,65 @@ app.post('/profil', (req, res) => {
   );
 });
 
+// recuperer solde (pour en temps reel cote client)
+app.post('/solde', (req, res) => {
+  const { idUser } = req.body;
 
+  // Validation de l'entrée
+  if (!idUser || isNaN(idUser)) {
+    return res.status(400).json({ error: 'L\'idUser est requis et doit être un nombre valide.' });
+  }
 
+  db.query(
+    'SELECT solde FROM comptes WHERE idusers = ?',
+    [idUser],
+    (err, results) => {
+      if (err) {
+        console.error('Erreur lors de la requête SQL:', err);
+        return res.status(500).json({ error: 'Erreur interne du serveur.' });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Aucun compte trouvé pour cet utilisateur.' });
+      }
+      solde = results[0].solde
+      return res.status(200).json({ solde });
+    }
+  );
+});
+// modification de mot de passe
+app.post('/editpassword',(req,res)=>{
+  const { iduser , encienmdp , noueaumdp} = req.body
+  db.query(
+    'SELECT motDePasse FROM comptes WHERE idusers = ?',
+    [iduser],
+    (err,results) => {
+      if(err)
+        return res.status(500).json({error: err.message})
+      if(results.length === 0)
+
+        return res.status(401).json({message : "compte user introuvable"})
+      mdp = results[0].motDePasse
+
+      if(mdp != encienmdp)
+        return res.status(200).json({message: "mot de passe incorrcte"})
+
+      db.query(
+        'UPDATE comptes SET motDePasse = ? WHERE idusers = ?',
+        [noueaumdp,iduser],
+        (err1,resultats1)=>{
+          if(err1)
+            return res.status(500).json({error: err1.message})
+          return res.status(200).json({message: resultats1.message})
+        }
+      )
+    }
+  )
+})
+// tranfert effectuer par un client
+app.post('transfert',(req,res) => {
+  const {iduser,idDestinataire,montant} = req.body
+  
+})
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
