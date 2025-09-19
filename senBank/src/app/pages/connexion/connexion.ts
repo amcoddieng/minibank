@@ -7,9 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './connexion.css'
 })
 export class Connexion {
-   numeroCompte : String = ''
-   motDePasse : String = ""
 
-   
 
 }

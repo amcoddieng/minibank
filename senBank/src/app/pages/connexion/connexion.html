@@ -1,13 +1,12 @@
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
     <h4 class="text-center mb-4">Connexion</h4>
-    <form (ngSubmit)="login()" #loginForm="ngForm">
+    <form>
       <div class="mb-3">
         <input 
           type="text" 
           class="form-control border-0 border-bottom" 
           placeholder="numeroCompte" 
-          [(ngModel)]="numeroCompte" 
           name="numeroCompte"
           required>
       </div>
@@ -16,14 +15,12 @@
           type="password" 
           class="form-control border-0 border-bottom" 
           placeholder="Mot de passe" 
-          [(ngModel)]="motDePasse" 
           name="motDePasse"
           required>
       </div>
       <div class="d-grid">
-        <button type="submit" class="btn btn-primary" [disabled]="!loginForm.form.valid">
-          Connexion
-        </button>
+        <input type="submit" class="btn btn-primary" value="Connexion">
+        
       </div>
     </form>
   </div>
