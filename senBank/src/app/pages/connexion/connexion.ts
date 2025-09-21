@@ -12,7 +12,12 @@ import { Router } from '@angular/router'; // <-- Import du Router
   templateUrl: './connexion.html',
   styleUrls: ['./connexion.css'] // <-- corrigé styleUrl en styleUrls
 })
-export class Connexion implements OnInit {
+
+
+
+
+
+export class Connexion implements OnInit { 
   loginForm!: FormGroup;
 
   constructor(private sharedService: Shared, 

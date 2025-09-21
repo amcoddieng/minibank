@@ -2,6 +2,7 @@
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profil',
@@ -16,7 +17,7 @@ export class Profil implements OnInit{
   token: string | null = ""
   isBrowser: boolean;
   qrData: string = '';
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object,private route:Router) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
   ngOnInit(): void {
@@ -38,5 +39,8 @@ export class Profil implements OnInit{
         }
       }, 5000);
     }
+  }
+  goEditmdp(){
+    this.route.navigate(['/editmdp'])
   }
 }
