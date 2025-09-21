@@ -26,11 +26,15 @@ export class Connexion implements OnInit {
   connexion() {
     if(this.loginForm.valid){
       this.sharedService.login(this.loginForm.value).subscribe({
-        next: (res) => {
-          
-          // console.log(res);
-          // redirection après succès
-          this.router.navigate(['/profilClient']);
+        next: (res:any) => {
+          localStorage.setItem("token" , res.token)
+          localStorage.setItem("user", JSON.stringify(res.user));
+          localStorage.setItem("compte", JSON.stringify(res.compte));
+
+          if(res.user.role === "client" )
+            this.router.navigate(['/profilClient']);
+          else 
+            this.router.navigate(['/profilDistributeur']);
         },
         error: (err) => {
           console.log(err);

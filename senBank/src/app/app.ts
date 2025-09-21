@@ -1,3 +1,4 @@
+
 import { Component, signal } from '@angular/core';
 import { HeaderComponents } from './header/header';
 import { RouterModule, RouterOutlet } from '@angular/router';
@@ -8,7 +9,7 @@ import { RouterModule, RouterOutlet } from '@angular/router';
   standalone:true,
   imports: [
     HeaderComponents,
-    RouterOutlet
+    RouterOutlet,
 ],
   templateUrl: './app.html',
   styleUrl: './app.css'
