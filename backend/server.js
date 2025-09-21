@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 require("dotenv").config();
 const jwt = require('jsonwebtoken');
+const { sourceMapsEnabled } = require("process");
 
 const app = express();
 app.use(cors());
@@ -56,7 +57,7 @@ app.post("/connexion", (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
 
       if (results.length === 0) {
-        return res.status(401).json({ message: "Numéro de compte n'existe pas" });
+        return res.status(400).json({ message: "Numéro de compte n'existe pas" });
       }
 
       const compte = results[0];
@@ -76,19 +77,28 @@ app.post("/connexion", (req, res) => {
 
       // Génération du token JWT
       const token = jwt.sign(
-        { id: compte.id, numeroCompte: compte.numeroCompte },
+        { idCompte: compte.idCompte, numeroCompte: compte.numeroCompte },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
 
       // Retirer le mot de passe de l'objet compte avant de renvoyer
       delete compte.motDePasse;
+      db.query(
+        'select * from users where idUser = ?',
+        [compte.idusers],
+        (err,results)=>{
+          if (err) return res.status(500).json({ message: err.message });
+          user = results[0]
+          return res.json({
+            message: "Connexion réussie",
+            token,
+            compte,
+            user
+          });          
+        }
+      )
 
-      return res.json({
-        message: "Connexion réussie",
-        token,
-        compte,
-      });
     }
   );
 });
@@ -334,7 +344,7 @@ app.get('/Searchtransaction',(req,res)=>{
     }
   )
 })
-// Endpoint pour afficher tous les comptes
+// afficher tous les comptes
 app.get('/comptes', (req, res) => {
     db.query('SELECT * FROM comptes', (err, results) => {
         if (err) {
@@ -594,9 +604,167 @@ app.post('/debiterCompte', (req, res) => {
 
 });
 // annuler transaction
-app.post('/annulerTansaction',(req,res)=>{
-  
-})
+app.post('/annulerTransaction', (req, res) => {
+  const { idtransaction } = req.body;
+
+  // Démarrer la transaction
+  db.beginTransaction((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Erreur de début de transaction', details: err.message });
+    }
+
+    // 1. Vérifier la transaction
+    db.query(
+      'SELECT * FROM transactions WHERE id = ? FOR UPDATE',
+      [idtransaction],
+      (err, result) => {
+        if (err) {
+          return db.rollback(() => {
+            res.status(500).json({ error: err.message });
+          });
+        }
+        
+        if (result.length === 0) {
+          return db.rollback(() => {
+            res.status(404).json({ message: "Transaction introuvable" ,status:404});
+          });
+        }
+        
+        if (result[0].etat === "annule") {
+          return db.rollback(() => {
+            res.status(400).json({ message: "Transaction déjà annulée" });
+          });
+        }
+
+        const { type, montant, frais, idCompteSource: source, idCompteDestinataire: dest } = result[0];
+
+        // 2. Exécuter les opérations selon le type
+        if (type === "transfert") {
+          // Premier UPDATE: retirer du destinataire
+          db.query(
+            'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?',
+            [montant, dest],
+            (err) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+              
+              // Deuxième UPDATE: remettre à la source avec frais
+              db.query(
+                'UPDATE comptes SET solde = solde + ? WHERE idCompte = ?',
+                [montant + frais, source],
+                (err) => {
+                  if (err) {
+                    return db.rollback(() => {
+                      res.status(500).json({ error: err.message });
+                    });
+                  }
+                  
+                  // Marquer comme annulé
+                  updateTransactionState();
+                }
+              );
+            }
+          );
+        } else if (type === "depot") {
+          // Premier UPDATE: retirer du destinataire
+          db.query(
+            'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?',
+            [montant, dest],
+            (err) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+              
+              // Deuxième UPDATE: remettre à la source
+              db.query(
+                'UPDATE comptes SET solde = solde + ? WHERE idCompte = ?',
+                [montant, source],
+                (err) => {
+                  if (err) {
+                    return db.rollback(() => {
+                      res.status(500).json({ error: err.message });
+                    });
+                  }
+                  
+                  // Marquer comme annulé
+                  updateTransactionState();
+                }
+              );
+            }
+          );
+        } else if (type === "retrait") {
+          // Premier UPDATE: retirer du destinataire
+          db.query(
+            'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?',
+            [montant, dest],
+            (err) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+              
+              // Deuxième UPDATE: remettre à la source
+              db.query(
+                'UPDATE comptes SET solde = solde + ? WHERE idCompte = ?',
+                [montant, source],
+                (err) => {
+                  if (err) {
+                    return db.rollback(() => {
+                      res.status(500).json({ error: err.message });
+                    });
+                  }
+                  
+                  // Marquer comme annulé
+                  updateTransactionState();
+                }
+              );
+            }
+          );
+        } else {
+          return db.rollback(() => {
+            res.status(400).json({ message: "Type de transaction non supporté" });
+          });
+        }
+
+        // Fonction pour mettre à jour l'état de la transaction
+        function updateTransactionState() {
+          db.query(
+            "UPDATE transactions SET etat = 'annule' WHERE id = ?",
+            [idtransaction],
+            (err) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+              
+              // Commit final
+              db.commit((err) => {
+                if (err) {
+                  return db.rollback(() => {
+                    res.status(500).json({ error: err.message });
+                  });
+                }
+                
+                res.status(200).json({ 
+                  message: "Annulation réussie", 
+                  type,
+                  transactionId: idtransaction
+                });
+              });
+            }
+          );
+        }
+      }
+    );
+  });
+});
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
 

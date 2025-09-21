@@ -1,9 +1,10 @@
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
     <h4 class="text-center mb-4">Connexion</h4>
-    <form>
+    <form [formGroup]="loginForm">
       <div class="mb-3">
         <input 
+          formControlName="username"
           type="text" 
           class="form-control border-0 border-bottom" 
           placeholder="numeroCompte" 
@@ -12,6 +13,7 @@
       </div>
       <div class="mb-3">
         <input 
+          formControlName="password"
           type="password" 
           class="form-control border-0 border-bottom" 
           placeholder="Mot de passe" 
@@ -19,7 +21,9 @@
           required>
       </div>
       <div class="d-grid">
-        <input type="submit" class="btn btn-primary" value="Connexion">
+        <button type="button" (click)="connexion()" class="btn btn-primary" value="Connexion">
+        Connexion
+        </button>
         
       </div>
     </form>
