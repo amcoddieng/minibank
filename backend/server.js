@@ -191,69 +191,8 @@ app.post('/editpassword',(req,res)=>{
     }
   )
 })
-
-
-// tranfert faite par le client
-// app.post('/transfert', (req, res) => {
-//   const { idCompte, compteDestinataire, montant } = req.body;
-//   frais = (montant*0.02)
-//   montant_plus_frais = montant + frais
-//   db.beginTransaction(err => {
-//     if (err) return res.status(500).json({ error: err.message });
-
-//     // Débit du compte source
-//     db.query(
-//       'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?',
-//       [montant_plus_frais, idCompte],
-//       (err, result) => {
-//         if (err) {
-//           return db.rollback(() => {
-//             res.status(500).json({ error: err.message });
-//           });
-//         }
-
-//         // Crédit du compte destinataire
-//         db.query(
-//           'UPDATE comptes SET solde = solde + ? WHERE numeroCompte = ?',
-//           [montant, compteDestinataire],
-//           (err1, result1) => {
-//             if (err1) {
-//               return db.rollback(() => {
-//                 res.status(500).json({ error: err1.message });
-//               });
-//             }
-
-//             // Validation de la transaction
-//             db.commit(err2 => {
-//               if (err2) {
-//                 return db.rollback(() => {
-//                   res.status(500).json({ error: err2.message });
-//                 });
-//               }
-//                 db.query(
-//                   "SELECT idCompte FROM comptes WHERE numeroCompte = ?",
-//                   [compteDestinataire],
-//                   async (err1, results1) => {
-//                     if (err1) return res.status(500).json({ error: err1.message });
-//                       db.query(
-//                           'insert into transations (type,montant,frais,idCompteSource,idCompteDestinataire,etat) values ("transfert",?,?,?,?,"reussi") ',
-//                           [montant,frais,idCompte,results1],
-//                           (err2,result2)=>{
-
-//                           }
-//                         )
-//                   }
-//                 )
-//               res.json({ message: 'Transfert effectué avec succès' });
-//             });
-//           }
-//         );
-//       }
-//     );
-//   });
-// });
 //depot
-app.post('/transaction', (req, res) => {
+app.post('/depot', (req, res) => {
   const { idCompte, compteDestinataire, montant } = req.body;
 
   db.beginTransaction(err => {
@@ -289,7 +228,7 @@ app.post('/transaction', (req, res) => {
                 });
               }
 
-              res.json({ message: 'Transfert effectué avec succès' });
+              res.json({ message: 'Depot effectué avec succès' });
             });
           }
         );
@@ -415,12 +354,18 @@ app.get('/comptesByrole/:role', (req, res) => {
   );
 });
 // masque solde
-app.post('/masksolde', (req,res) => {
-  const {idCompte} = req.body
+app.post('/masksolde', (req, res) => {
+  const { idCompte, ismask } = req.body;
+  
   db.query(
-    'update compte set masksolde = ? where idCompte = ?'
-  )
-})
+    'UPDATE comptes SET masksolde = ? WHERE idCompte = ?',
+    [ismask, idCompte],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      return res.status(200).json({ message: "réussi" });
+    }
+  );
+});
 // creer un compte
 // app.post('creerCompte',(req,res)=>{
 //   const {nom,prenom,datenais,lieunais,photo,telephone,adresse,nin,role} = req.body
@@ -438,7 +383,7 @@ app.post('/masksolde', (req,res) => {
 //   )
 // })
 
-
+// tranfert faite par le client
 app.post('/transfert', (req, res) => {
   const { idCompte, compteDestinataire, montant } = req.body;
 
@@ -556,7 +501,82 @@ app.post('/transfert', (req, res) => {
     });
   });
 });
+// le nombre de client
+app.get('/nbrClient',(req,res)=>{
+  db.query(
+    'select count(id) as nbrClient from clients',
+    (err,result)=>{
+      if(err) return res.status(500).json({error: err.message})
+      nbrClient = result[0].nbrClient
+      return res.status(200).json({nbrClient})
+    }
+  )
+})
+// le nombre de distributeur
+app.get('/nbrDistributeur',(req,res)=>{
+  db.query(
+    'select count(id) as nbrDistributeur from distributeurs',
+    (err,result)=>{
+      if(err) return res.status(500).json({error: err.message})
+      nbrDistributeur = result[0].nbrDistributeur
+      return res.status(200).json({nbrDistributeur})
+    }
+  )
+})
+// crediter un compte distributeur
+app.post('/crediterCompte', (req, res) => {
+  const { idCompte, montant } = req.body;
+  db.beginTransaction(err => {
+  if (err) return res.status(500).json({ error: err.message });
 
+  db.query(
+    'UPDATE comptes SET solde = solde + ? WHERE idCompte = ?', 
+    [montant, idCompte], 
+    (err, result) => {
+    if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+    db.query(
+      'INSERT INTO creditation (idCompte, montant) VALUES (?, ?)', 
+      [idCompte, montant], 
+      (err, result) => {
+      if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+      db.commit(err => {
+        if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+        res.status(200).json({ message: 'Compte crediter avec succès' });
+      });
+    });
+  });
+});
+
+});
+// debiter un compte distributeur
+app.post('/debiterCompte', (req, res) => {
+  const { idCompte, montant } = req.body;
+  db.beginTransaction(err => {
+  if (err) return res.status(500).json({ error: err.message });
+
+  db.query(
+    'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?', 
+    [montant, idCompte], 
+    (err, result) => {
+    if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+    db.query(
+      'INSERT INTO creditation (idCompte, montant) VALUES (?, ?)', 
+      [idCompte, -montant], 
+      (err, result) => {
+      if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+      db.commit(err => {
+        if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+        res.status(200).json({ message: 'Compte débité avec succès' });
+      });
+    });
+  });
+});
+
+});
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
