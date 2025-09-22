@@ -1,0 +1,81 @@
+<div class="container mt-3 text-white shadow" style="background-color: #2E88C7;">
+  <div class="row text-center  ">
+    <div class="card-body " style="background-color: #2E88C7;">
+      <!-- Solde -->
+      <h4 class="fw-bold  mb-3">
+        {{compte.solde}} F
+        <i class="bi bi-eye-slash"></i>
+      </h4>
+
+      <!-- QR Code et profil -->
+      <div class="row align-items-center">
+        <!-- Profil -->
+        <div class="col-12 col-md-7 d-flex align-items-center mb-3 mb-md-0">
+          <!-- Photo -->
+          <div class="me-3" style="flex:0 0 70px;">
+            <img src="icones/{{user.photo}}" alt="Photo" class="img-fluid rounded border">
+          </div>
+          <!-- Infos -->
+          <div class="text-start">
+            <p class="mb-1"><small>N° Compte : <b>{{compte.numeroCompte}}</b></small></p>
+            <p class="mb-1"><small>Nom : <b>{{user.prenom}} {{user.nom}}</b></small></p>
+            <p class="mb-0"><small>Rôle : <b>{{user.role}}</b></small></p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="container d-flex justify-content-center align-items-center mt-5">
+  <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
+    <h4 class="text-center mb-4">Modification mot de passe</h4>
+    <form [formGroup]="passwordForm">
+      <div class="mb-3">
+        <input 
+          formControlName="ancien"
+          type="password" 
+          class="form-control border-0 border-bottom" 
+          placeholder="ancien mot de passe" 
+          name="ancien"
+          required>
+      </div>
+      <div class="mb-3">
+        <input 
+          formControlName="nouveau"
+          type="password" 
+          class="form-control border-0 border-bottom" 
+          placeholder="nouveau mot de passe" 
+          name="nouveau"
+          required>
+        <input 
+          formControlName="id"
+          type="hidden" 
+          class="form-control border-0 border-bottom" 
+          placeholder="nouveau mot de passe" 
+          name="id"
+          value='{{user.idUser}}'
+          required>
+      </div>
+
+      <div class="mb-3">
+        <input 
+          formControlName="confirmation"
+          type="password" 
+          class="form-control border-0 border-bottom" 
+          placeholder="retapez votre nouveau mot de passe" 
+          name="confirmation"
+          required>
+      </div>
+
+      <div class="container d-flex justify-content-between">
+        <button type="button" (click)="back()" class="btn btn-primary" value="retour">
+        annuler
+        </button>
+        <button type="button" (click)="modifier()" class="btn btn-primary" value="Connexion">
+        modifier
+        </button>
+        
+      </div>
+    </form>
+  </div>
+</div>

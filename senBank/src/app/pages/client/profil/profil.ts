@@ -36,7 +36,7 @@ export class Profil implements OnInit{
 alltrans(): void {
   this.trans.AlltransactionClient({ idCompte: this.compte.idCompte }).subscribe({
     next: (res: any) => {
-      console.log("✅ Réponse API :", res);
+      console.log("✅ Réponse API :", res.results);
 
       // adapte selon ta réponse réelle
       if (res.results) {

@@ -28,17 +28,48 @@
 </div>
 <!-- menu bouton transfert et modifier mot de passe -->
 <div class="container d-flex justify-content-center mt-3">
-      <button type="button" (click)="godepot()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+      <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         depot
     </button>
-      <button type="button" (click)="goretrait()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+      <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         retrait
     </button>
     <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         Transfert
     </button>
 
-    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;" (click)="goEditmdp()">
+    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;">
         Modifier mot de passe
     </button>
+</div>
+
+
+
+
+
+<div class="container my-4">
+  <div class="card shadow-sm p-4 text-center">
+
+    <!-- Titre -->
+    <h5 class="fw-bold text-primary mb-4">Retirez de l’argent</h5>
+
+    <!-- Formulaire -->
+    <form [formGroup]="formRetrait">
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Numero compte Client</label>
+        <input type="text" formControlName="client" class="form-control mx-auto w-75">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label small fw-bold">Montant</label>
+        <input type="number" formControlName="montant" class="form-control mx-auto w-75">
+      </div>
+
+      <!-- Boutons -->
+      <div class="d-flex justify-content-around">
+        <button type="button" (click)="retrait()" class="btn btn-primary fw-bold " >Valider</button>
+        <button type="button" class="btn btn-primary fw-bold " >Annuler</button>
+      </div>
+    </form>
+  </div>
 </div>
