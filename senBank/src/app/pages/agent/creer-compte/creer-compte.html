@@ -1,0 +1,84 @@
+<!-- PAGE CRÉER UN COMPTE -->
+<div id="createAccountPage" class="hidden">
+  <div class="container">
+    <div class="create-account-container">
+      <h1 class="create-account-title">Créer un compte</h1>
+
+      <form id="createAccountForm">
+        <div class="row">
+          <div class="col-12 mb-4">
+            <div class="form-group">
+              <label class="form-label">Type de compte :</label>
+              <select class="form-select" id="accountType" required>
+                <option value="">Sélectionner le type</option>
+                <option value="CLIENT">Client</option>
+                <option value="DISTRIBUTEUR">Distributeur</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Nom :</label>
+              <input type="text" class="form-control" id="lastName" required />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Prénom :</label>
+              <input type="text" class="form-control" id="firstName" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Adresse :</label>
+              <input type="text" class="form-control" id="address" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Numéro téléphone :</label>
+              <input type="tel" class="form-control" id="phoneNumber" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Date de naissance :</label>
+              <input type="date" class="form-control" id="birthDate" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">NIN :</label>
+              <input type="text" class="form-control" id="nin" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">Photo :</label>
+              <button type="button" class="btn btn-outline-secondary">Télécharger</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <button type="submit" class="btn-validate border border-primary text-primary">
+            Valider
+          </button>
+          <button type="button" class="btn-cancel" onclick="showDashboard()">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

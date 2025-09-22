@@ -1,0 +1,51 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="#" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="fw-bold text-primary">Gestion des comptes créés</h4>
+    <div class="d-flex">
+      <input type="text" class="form-control me-2" placeholder="Rechercher..." />
+      <select class="form-select w-auto me-2">
+        <option>Type</option>
+        <option>Client</option>
+        <option>Distributeur</option>
+      </select>
+      <button class="action-btn" [routerLink]="['/creer-compte']">Créer un compte</button>
+    </div>
+  </div>
+
+  <div class="list-group">
+    <div
+      *ngFor="let c of comptes"
+      class="list-group-item d-flex justify-content-between align-items-center mb-2"
+    >
+      <div>
+        <strong>{{ c.nom }} {{ c.numero }} ({{ c.type }})</strong><br />
+        <small>{{ c.date }}</small>
+      </div>
+      <div>
+        <span
+          class="badge"
+          [ngClass]="{ 'bg-success': c.statut === 'Actif', 'bg-danger': c.statut === 'Bloqué' }"
+          >{{ c.statut }}</span
+        >
+        <button class="btn btn-outline-primary btn-sm me-2" (click)="modifier(c)">Modifier</button>
+        <button
+          *ngIf="c.statut === 'Actif'"
+          class="btn btn-outline-danger btn-sm"
+          (click)="bloquer(c)"
+        >
+          Bloquer
+        </button>
+        <button
+          *ngIf="c.statut === 'Bloqué'"
+          class="btn btn-outline-success btn-sm"
+          (click)="debloquer(c)"
+        >
+          Débloquer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
