@@ -10,7 +10,7 @@ interface LoginData {
 interface Editmdp{
   ancien: string
   nouveau: string
-  iduser: string
+  id: string
 }
 
 @Injectable({
@@ -22,6 +22,6 @@ export class Shared {
     return this._http.post(environment.baseUrl + "connexion",{ numeroCompte:data.username, motDePasse:data.password})
   }
   changermotdepasse(data:Editmdp){
-    return this._http.post(environment.baseUrl + "editpassword", {iduser:data.iduser , encienmdp:data.ancien , noueaumdp:data.nouveau})
+    return this._http.post(environment.baseUrl + "editpassword", {iduser:data.id , encienmdp:data.ancien , noueaumdp:data.nouveau})
   }
 }

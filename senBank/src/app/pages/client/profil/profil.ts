@@ -3,6 +3,7 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { Router } from '@angular/router';
+import { TransfertService } from '../../../services/transaction/transfert';
 
 @Component({
   selector: 'app-profil',
@@ -17,7 +18,8 @@ export class Profil implements OnInit{
   token: string | null = ""
   isBrowser: boolean;
   qrData: string = '';
-  constructor(@Inject(PLATFORM_ID) private platformId: Object,private route:Router) {
+  Alltransaction :any
+  constructor(private trans : TransfertService ,@Inject(PLATFORM_ID) private platformId: Object,private route:Router) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
   ngOnInit(): void {
@@ -26,7 +28,31 @@ export class Profil implements OnInit{
       this.user = JSON.parse(localStorage.getItem("user") || '{}')
       this.token = localStorage.getItem("token")
       this.qrData = this.compte.numeroCompte;
-  }}
+      this.alltrans();
+  }
+
+}
+
+alltrans(): void {
+  this.trans.AlltransactionClient({ idCompte: this.compte.idCompte }).subscribe({
+    next: (res: any) => {
+      console.log("✅ Réponse API :", res.results);
+
+      // adapte selon ta réponse réelle
+      if (res.results) {
+        this.Alltransaction = res.results; // si l’API met les transactions dans "data"
+      } else {
+        this.Alltransaction = res; // si c’est déjà un tableau
+      }
+    },
+    error: (err: any) => {
+      console.error("❌ Erreur API :", err);
+    }
+  });
+}
+
+
+
 
   ngAfterViewInit(): void {
     if (this.isBrowser) {
@@ -43,4 +69,8 @@ export class Profil implements OnInit{
   goEditmdp(){
     this.route.navigate(['/editmdp'])
   }
+  goTrans(){
+    this.route.navigate(['/transfertClient'])
+  }
+
 }

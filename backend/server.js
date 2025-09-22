@@ -11,16 +11,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Middleware d'authentification (exemple avec JWT)
+// Middleware d'authentification
 const authMiddleware = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) return res.status(401).json({ error: 'Token requis.' });
+  const token = req.headers["authorization"];
+  if (!token) return res.status(401).json({ error: "Token requis." });
+
   try {
-    const decoded = jwt.verify(token, 'votre_clé_secrète');
-    req.user = decoded; 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // cohérence
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Token invalide.' });
+    return res.status(401).json({ error: "Token invalide." });
   }
 };
 // generer numero compte
@@ -70,35 +71,45 @@ app.post("/connexion", (req, res) => {
         return res.status(403).json({ message: "Votre compte est bloqué" });
       }
 
-        const isValidPassword = (motDePasse === compte.motDePasse)
-        if (!isValidPassword) {
-          return res.status(401).json({ message: "Mot de passe invalide" });
-        }
+      // *** Vérification en clair (tel que demandé) ***
+      const isValidPassword = motDePasse === compte.motDePasse;
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Mot de passe invalide" });
+      }
 
-      // Génération du token JWT
+      // Génération du token JWT (assure-toi d'avoir process.env.JWT_SECRET défini)
       const token = jwt.sign(
         { idCompte: compte.idCompte, numeroCompte: compte.numeroCompte },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
 
-      // Retirer le mot de passe de l'objet compte avant de renvoyer
+      // Retirer le mot de passe avant d'envoyer la réponse
       delete compte.motDePasse;
+
+      // Chercher l'utilisateur lié
       db.query(
-        'select * from users where idUser = ?',
+        "SELECT * FROM users WHERE idUser = ?",
         [compte.idusers],
-        (err,results)=>{
+        (err, userResults) => {
           if (err) return res.status(500).json({ message: err.message });
-          user = results[0]
+
+          if (!userResults || userResults.length === 0) {
+            // Option : tu peux renvoyer quand même token+compte si l'utilisateur lié n'existe pas
+            // Ici je renvoie 404 pour être explicite
+            return res.status(404).json({ message: "Utilisateur introuvable" });
+          }
+
+          const user = userResults[0];
+
           return res.json({
             message: "Connexion réussie",
             token,
             compte,
-            user
-          });          
+            user,
+          });
         }
-      )
-
+      );
     }
   );
 });
@@ -161,34 +172,35 @@ app.post('/userExiste',(req,res)=>{
   )
 }
 )
-// recuperer solde (pour en temps reel cote client)
-app.post('/solde', (req, res) => {
-  const { idUser } = req.body;
+/// Récupérer solde du compte connecté
+app.get('/solde', authMiddleware, (req, res) => {
+  const { idCompte } = req.user; // récupéré du token (connexion)
 
-  // Validation de l'entrée
-  if (!idUser || isNaN(idUser)) {
-    return res.status(400).json({ error: 'L\'idUser est requis et doit être un nombre valide.' });
+  if (!idCompte) {
+    return res.status(400).json({ error: "idCompte manquant dans le token." });
   }
 
   db.query(
-    'SELECT solde FROM comptes WHERE idusers = ?',
-    [idUser],
+    "SELECT solde FROM comptes WHERE idCompte = ?",
+    [idCompte],
     (err, results) => {
       if (err) {
-        console.error('Erreur lors de la requête SQL:', err);
-        return res.status(500).json({ error: 'Erreur interne du serveur.' });
+        console.error("Erreur SQL:", err);
+        return res.status(500).json({ error: "Erreur interne du serveur." });
       }
 
       if (results.length === 0) {
-        return res.status(404).json({ error: 'Aucun compte trouvé pour cet utilisateur.' });
+        return res.status(404).json({ error: "Compte introuvable." });
       }
-      solde = results[0].solde
+
+      const solde = results[0].solde;
       return res.status(200).json({ solde });
     }
   );
 });
+
 // modification de mot de passe
-app.post('/editpassword',(req,res)=>{
+app.post('/editpassword',authMiddleware,(req,res)=>{
   const { iduser , encienmdp , noueaumdp} = req.body
   db.query(
     'SELECT motDePasse FROM comptes WHERE idusers = ?',
@@ -271,6 +283,66 @@ app.post('/depot', (req, res) => {
     });
   });
 });
+// app.post('/depot', authMiddleware, (req, res) => {
+//   const { compteDestinataire, montant } = req.body;
+//   const idCompte = req.user.idCompte; // récupéré du token
+//   const commission = montant * 0.01;
+//   const montantDebiter = montant - commission;
+
+//   db.beginTransaction(err => {
+//     if (err) return res.status(500).json({ error: err.message });
+
+//     // Vérifier solde du compte source
+//     db.query('SELECT solde FROM comptes WHERE idCompte = ?', [idCompte], (err, results) => {
+//       if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+//       if (results.length === 0) return db.rollback(() => res.status(404).json({ error: 'Compte source introuvable' }));
+//       if (results[0].solde < montantDebiter) return db.rollback(() => res.status(400).json({ error: 'Solde insuffisant' }));
+
+//       // Débit du compte source
+//       db.query('UPDATE comptes SET solde = solde - ? WHERE idCompte = ?', [montantDebiter, idCompte], (err) => {
+//         if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+//         // Crédit du compte destinataire
+//         db.query('UPDATE comptes SET solde = solde + ? WHERE numeroCompte = ?', [montant, compteDestinataire], (err) => {
+//           if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+//           // Récupérer idCompte destinataire
+//           db.query('SELECT idCompte FROM comptes WHERE numeroCompte = ?', [compteDestinataire], (err, results) => {
+//             if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+//             if (results.length === 0) {
+//               return db.rollback(() => res.status(404).json({ error: 'Compte destinataire introuvable' }));
+//             }
+
+//             const idCompteDestinataire = results[0].idCompte;
+
+//             // Enregistrer la transaction
+//             db.query(
+//               'INSERT INTO transactions (type, montant, frais, idCompteSource, idCompteDestinataire, etat, dateTransaction) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+//               ['depot', montant, commission, idCompte, idCompteDestinataire, 'reussi'],
+//               (err) => {
+//                 if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+//                 // Valider la transaction
+//                 db.commit(err => {
+//                   if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+//                   res.status(200).json({
+//                     message: 'Depot effectué avec succès',
+//                     montantTransfere: montant,
+//                     frais: commission,
+//                     montantDebite: montantDebiter
+//                   });
+//                 });
+//               }
+//             );
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
 // retrait chez le distributeur
 app.post('/retrait', (req, res) => {
   const { numeroCompteClient, idCompteDistributeur, montant } = req.body;

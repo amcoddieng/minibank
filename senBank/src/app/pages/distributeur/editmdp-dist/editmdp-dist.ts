@@ -7,20 +7,18 @@ import { Router } from '@angular/router';
 // Optionnel : import { ToastrService } from 'ngx-toastr'; // Pour des notifications modernes
 
 @Component({
-  selector: 'app-editmdp',
-  standalone: true, // Si vous utilisez des composants standalone (Angular 14+)
-  imports: [ReactiveFormsModule, CommonModule,QRCodeComponent],
-  templateUrl: './editmdp.html',
-  styleUrl: './editmdp.css'
+  selector: 'app-editmdp-dist',
+  imports: [ReactiveFormsModule, CommonModule,],
+  templateUrl: './editmdp-dist.html',
+  styleUrl: './editmdp-dist.css'
 })
-export class Editmdp implements OnInit{
+export class EditmdpDist  implements OnInit{
 
   passwordForm! : FormGroup
   isBrowser : boolean
   user : any
   compte: any;
   token: string | null = "";
-  qrData: string = "";
   constructor(private route : Router,private sharedService : Shared,private formbuider : FormBuilder,@Inject(PLATFORM_ID) private platformId: Object){
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
@@ -31,7 +29,6 @@ export class Editmdp implements OnInit{
       this.compte = JSON.parse(localStorage.getItem("compte") || '{}')
       this.user = JSON.parse(localStorage.getItem("user") || '{}')
       this.token = localStorage.getItem("token")
-      this.qrData = this.compte.numeroCompte;
           // Injecte l'id dans le form
     this.passwordForm.patchValue({
       id: this.user.idUser
@@ -64,19 +61,8 @@ export class Editmdp implements OnInit{
       id : new FormControl("",Validators.required)
     })
   }
-  ngAfterViewInit(): void {
-    if (this.isBrowser) {
-      // JS pur pour rafraîchir le QR toutes les 5s
-      setInterval(() => {
-        const qrImg = document.querySelector('qrcode canvas') as HTMLCanvasElement;
-        if (qrImg) {
-          // On recrée le QR code en changeant juste un paramètre invisible
-          this.qrData = `${this.compte.numeroCompte}?t=${Date.now()}`;
-        }
-      }, 5000);
-    }
-  }
   back(){
-    this.route.navigate(["/profilClient"])
+    this.route.navigate(["/profilDistributeur"])
   }
 }
+ 

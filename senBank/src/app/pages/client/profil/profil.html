@@ -36,12 +36,12 @@
 
         </div>
       </div>
-    </div>
+    </div> 
   </div>
 </div>
 <!-- menu bouton transfert et modifier mot de passe -->
 <div class="container d-flex justify-content-center mt-3">
-    <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+    <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;" (click)="goTrans()">
         Transfert
     </button>
     <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;" (click)="goEditmdp()">
@@ -70,3 +70,29 @@
         <button class="btn btn-sm"  style="background-color: #2E88C7;">Rechercher</button>
     </div>
 </div>
+
+
+<div class="list-group shadow-sm" *ngIf="Alltransaction?.length > 0; else noData">
+  <div class="list-group-item d-flex justify-content-between align-items-center"
+       *ngFor="let trans of Alltransaction">
+       
+    <div>
+      <p class="mb-0 fw-bold">
+        <!-- si c'est un transfert sortant -->
+        Transfert à {{ trans.destinataire?.nom || 'Inconnu' }}
+      </p>
+      <small class="text-muted">
+        {{ trans.dateTransaction | date:'HH:mm, dd/MM/yyyy' }}
+      </small>
+    </div>
+
+    <span class="fw-bold"
+          [ngClass]="{'text-success': trans.type === 'depot', 'text-danger': trans.type === 'retrait' , 'text-warning': trans.type === 'transfert' }">
+      {{ trans.montant }} F 
+    </span>
+  </div>
+</div>
+
+<ng-template #noData>
+  <p class="text-muted">Aucune transaction trouvée.</p>
+</ng-template>
