@@ -102,6 +102,22 @@ app.post("/connexion", (req, res) => {
     }
   );
 });
+// connexion pour agent
+app.post('/connexionAgent',(req,res)=>{
+  const {email,mdp} = req.body
+  db.query(
+    'select * from agents where email = ? and mdp = ?',
+    [email,mdp],
+    (err,result)=>{
+      if(err) return res.status(500).json({error: err.message})
+      if(result.length === 0) return res.status(400).json({message: "email ou mot de passe invalide"})
+        agent = result[0]
+      
+      return res.status(500).json({agent,status : 200})
+    }
+  )
+}
+)
 // recuperer profil
 app.post('/profil', (req, res) => {
   const { idUsers } = req.body;
