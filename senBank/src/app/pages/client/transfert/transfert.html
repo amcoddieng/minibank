@@ -1,0 +1,48 @@
+<div class="container d-flex justify-content-center align-items-center mt-4">
+    <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
+      
+      <!-- Titre -->
+      <h4 class="text-center fw-bold mb-4 text-primary">Transferez de l’argent</h4>
+      
+      <!-- Formulaire -->
+      <form [formGroup]="formTransfert">
+        <!-- Numéro compte -->
+        <div class="mb-3 row">
+          <label class="col-sm-6 col-form-label">Numero compte Destinataire</label>
+          <div class="col-sm-6">
+            <input type="text" class="form-control" name="dest" formControlName="dest">
+          </div>
+        </div>
+
+        <!-- Montant à envoyer -->
+        <div class="mb-3 row">
+          <label class="col-sm-6 col-form-label">Montant à envoyer</label>
+          <div class="col-sm-6">
+            <input type="number" class="form-control" name="montant" formControlName="montant">
+          </div>
+        </div>
+        <input type="hidden" formControlName="id">
+        <!-- Montant reçu -->
+        <div class="mb-1 row">
+          <label class="col-sm-6 col-form-label">Montant reçu</label>
+          <div class="col-sm-6">
+            <input type="number" class="form-control is-invalid" name="montantRecu" formControlName="montantRecu">
+            <div class="invalid-feedback text-center">
+              message sur le solde insuffisant
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons -->
+      <div class="container d-flex justify-content-between">
+        <button type="button" class="btn btn-primary" (click)="back()" value="retour">
+        annuler
+        </button>
+        <button type="button" class="btn btn-primary" (click)="transferer()" value="Connexion">
+        modifier
+        </button>
+        
+      </div>
+      </form>
+    </div>
+  </div>

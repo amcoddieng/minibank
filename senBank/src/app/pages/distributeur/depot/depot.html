@@ -1,0 +1,72 @@
+<div class="container mt-3 text-white shadow" style="background-color: #2E88C7;">
+  <div class="row text-center  ">
+    <div class="card-body " style="background-color: #2E88C7;">
+      <!-- Solde -->
+      <h4 class="fw-bold  mb-3">
+        {{compte.solde}} F
+        <i class="bi bi-eye-slash"></i>
+      </h4>
+
+      <!-- QR Code et profil -->
+      <div class="row align-items-center">
+        <!-- Profil -->
+        <div class="col-12 col-md-7 d-flex align-items-center mb-3 mb-md-0">
+          <!-- Photo -->
+          <div class="me-3" style="flex:0 0 70px;">
+            <img src="icones/{{user.photo}}" alt="Photo" class="img-fluid rounded border">
+          </div>
+          <!-- Infos -->
+          <div class="text-start">
+            <p class="mb-1"><small>N° Compte : <b>{{compte.numeroCompte}}</b></small></p>
+            <p class="mb-1"><small>Nom : <b>{{user.prenom}} {{user.nom}}</b></small></p>
+            <p class="mb-0"><small>Rôle : <b>{{user.role}}</b></small></p>
+          </div>
+        </div>
+      </div>
+    </div> 
+  </div>
+</div>
+<!-- menu bouton transfert et modifier mot de passe -->
+<div class="container d-flex justify-content-center mt-3">
+      <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        depot
+    </button>
+      <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        retrait
+    </button>
+    <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        Transfert
+    </button>
+
+    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;">
+        Modifier mot de passe
+    </button>
+</div>
+
+
+<div class="container my-4">
+  <div class="card shadow-sm p-4 text-center">
+
+    <!-- Titre -->
+    <h5 class="fw-bold text-primary mb-4">Deposez de l’argent</h5>
+
+    <!-- Formulaire -->
+    <form [formGroup]="depot" class="d-flex flex-column align-items-center">
+      <div class="mb-3 w-50">
+        <label class="form-label small fw-bold">Numero compte Client</label>
+        <input formControlName="client" type="text" class="form-control text-center">
+      </div>
+<input type="hidden" formControlName="idCompt">
+      <div class="mb-4 w-50">
+        <label class="form-label small fw-bold">Montant</label>
+        <input formControlName="montant"  type="number" class="form-control text-center">
+      </div>
+
+      <!-- Boutons -->
+      <div class="d-flex justify-content-around w-50">
+        <button type="button" class="btn btn-primary fw-bold" (click)="deposer()">Valider</button>
+        <button type="button" class="btn btn-primary fw-bold" >Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

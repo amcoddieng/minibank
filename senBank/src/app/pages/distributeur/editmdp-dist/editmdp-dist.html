@@ -22,23 +22,10 @@
             <p class="mb-0"><small>Rôle : <b>{{user.role}}</b></small></p>
           </div>
         </div>
-
-        <!-- QR Code généré -->
-        <div class="col-12 col-md-5 text-center">
-<div *ngIf="isBrowser">
-  <qrcode 
-    [qrdata]="qrData" 
-    [width]="150" 
-    [errorCorrectionLevel]="'M'">
-  </qrcode>
-</div>
-
-
         </div>
       </div>
     </div>
   </div>
-</div>
 <div class="container d-flex justify-content-center align-items-center mt-5">
   <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
     <h4 class="text-center mb-4">Modification mot de passe</h4>
