@@ -11,6 +11,7 @@
           Créditer un compte
         </button>
       </div>
+
       <div class="col-md-4">
         <button
           class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3"
@@ -29,6 +30,24 @@
       </div>
     </div>
 
+    <!-- Filtrer par rôle -->
+    <div class="row align-items-end g-2 my-3">
+      <div class="col-auto">
+        <label class="form-label mb-0">Rôle</label>
+        <select class="form-select" [(ngModel)]="roleFilter">
+          <option value="">Tous</option>
+          <option value="client">Client</option>
+          <option value="distributeur">Distributeur</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-primary" (click)="loadByRole()">Filtrer</button>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-secondary" (click)="loadAll()">Tout afficher</button>
+      </div>
+    </div>
+
     <!-- Historique des comptes créés -->
     <div class="history-section">
       <h3 class="history-header">Historique des comptes créés</h3>
@@ -37,7 +56,7 @@
         <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
         <div *ngIf="!loading && !error && comptes.length === 0" class="text-muted">Aucun compte trouvé.</div>
 
-        <div class="account-item" *ngFor="let c of comptes">
+        <div class="account-item" *ngFor="let c of pagedComptes">
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <div class="account-name">{{ c.nom || '—' }} {{ c.prenom || '' }}</div>

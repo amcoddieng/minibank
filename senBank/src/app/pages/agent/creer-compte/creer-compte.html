@@ -8,15 +8,15 @@
     <div class="create-account-container">
       <h1 class="create-account-title">Créer un compte</h1>
 
-      <form id="createAccountForm">
+      <form id="createAccountForm" (ngSubmit)="onSubmit()">
         <div class="row">
           <div class="col-4 mb-4">
             <div class="form-group">
               <label class="form-label">Type de compte :</label>
-              <select class="form-select" id="accountType" required>
+              <select class="form-select" id="accountType" required [(ngModel)]="model.role" name="role">
                 <option value="">Sélectionner le type</option>
-                <option value="CLIENT">Client</option>
-                <option value="DISTRIBUTEUR">Distributeur</option>
+                <option value="client">Client</option>
+                <option value="distributeur">Distributeur</option>
               </select>
             </div>
           </div>
@@ -26,13 +26,13 @@
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">Nom :</label>
-              <input type="text" class="form-control" id="lastName" required />
+              <input type="text" class="form-control" id="lastName" [(ngModel)]="model.nom" name="nom" required />
             </div>
           </div>
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">Prénom :</label>
-              <input type="text" class="form-control" id="firstName" required />
+              <input type="text" class="form-control" id="firstName" [(ngModel)]="model.prenom" name="prenom" required />
             </div>
           </div>
         </div>
@@ -41,13 +41,13 @@
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">Adresse :</label>
-              <input type="text" class="form-control" id="address" />
+              <input type="text" class="form-control" id="address" [(ngModel)]="model.adresse" name="adresse" />
             </div>
           </div>
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">Numéro téléphone :</label>
-              <input type="tel" class="form-control" id="phoneNumber" required />
+              <input type="tel" class="form-control" id="phoneNumber" [(ngModel)]="model.telephone" name="telephone" required />
             </div>
           </div>
         </div>
@@ -56,13 +56,13 @@
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">Date de naissance :</label>
-              <input type="date" class="form-control" id="birthDate" />
+              <input type="date" class="form-control" id="birthDate" [(ngModel)]="model.datenais" name="datenais" />
             </div>
           </div>
           <div class="col-md-5">
             <div class="form-group">
               <label class="form-label">NIN :</label>
-              <input type="text" class="form-control" id="nin" />
+              <input type="text" class="form-control" id="nin" [(ngModel)]="model.nin" name="nin" />
             </div>
           </div>
         </div>
@@ -71,23 +71,27 @@
           <div class="col-4">
             <div class="form-group">
               <label class="form-label">Photo :</label>
-              <button type="button" class="btn btn-outline-secondary">Télécharger</button>
+              <input type="file" name="photo" id="photo">
             </div>
           </div>
         </div>
 
         <div class="text-center mt-4">
-          <button type="submit" class="btn-validate border border-primary text-primary">
+          <button type="submit" class="btn-validate bg-primary text-white fw-bold" (click)="onSubmit()">
             Valider
           </button>
           <button
             type="button"
             class="btn-cancel"
-            onclick="showDashboard()"
-            [routerLink]="['/agent/gestion-comptes']"
+            [routerLink]="['/gestion-comptes']"
           >
             Annuler
           </button>
+          <div class="mt-3">
+            <div *ngIf="loading" class="alert alert-info">Envoi en cours...</div>
+            <div *ngIf="message" class="alert alert-success">{{ message }}</div>
+            <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+          </div>
         </div>
       </form>
     </div>

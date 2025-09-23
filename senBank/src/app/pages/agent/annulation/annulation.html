@@ -1,10 +1,40 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <a routerLink="/accueil" class="btn btn-outline-secondary">
+    <a href="#" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left"></i>
     </a>
     <h4 class="fw-bold text-primary">Annuler transaction</h4>
     <div></div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+      <label class="form-label mb-0">Type</label>
+      <select class="form-select" [(ngModel)]="filterType" (change)="onFilterTypeChange(filterType)">
+        <option value="all">Tous</option>
+        <option value="transfert">Transfert</option>
+        <option value="depot">Dépôt</option>
+        <option value="retrait">Retrait</option>
+      </select>
+    </div>
+
+    
+    <div class="col-auto">
+      <button class="btn btn-outline-primary" (click)="loadByCompte()">Filtrer par compte</button>
+    </div>
+
+    <div class="col-auto">
+      <label class="form-label mb-0">ID transaction</label>
+      <input type="number" class="form-control" [(ngModel)]="searchId" placeholder="idtransaction" />
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary" (click)="search()">Rechercher</button>
+    </div>
+
+    <div class="col-auto">
+      <button class="btn btn-outline-dark" (click)="loadTransactions()">Réinitialiser</button>
+    </div>
   </div>
 
   <div *ngIf="loading" class="alert alert-info">Chargement...</div>

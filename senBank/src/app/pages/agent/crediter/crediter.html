@@ -1,5 +1,9 @@
+<div class="container">
+<a href="#" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
 <div class="container my-4">
-  <div class="card shadow-sm p-4 text-center">
+  <div class="card col-6 mx-auto shadow-sm p-4 text-center">
     <!-- Titre -->
     <h5 class="fw-bold text-primary mb-4">Crediter un ditributeur</h5>
 
@@ -18,8 +22,9 @@
       <!-- Boutons -->
       <div class="d-flex justify-content-around w-50">
         <button type="submit" class="btn btn-primary fw-bold" routerLink="/">Valider</button>
-        <button type="button" class="btn btn-primary fw-bold" routerLink="/accueil">Annuler</button>
+        <button type="button" class="btn btn-light text-primary border-primary-subtle fw-bold" [routerLink]="['/agent/accueil']">Annuler</button>
       </div>
     </form>
   </div>
+</div>
 </div>

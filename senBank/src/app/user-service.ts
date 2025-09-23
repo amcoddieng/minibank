@@ -21,5 +21,10 @@ export class UserService {
     return this.http.post<{ user: boolean }>(`${this.apiUrl}/userExiste`, { iduser });
   }
 
+  // Créer un utilisateur + compte
+  creerCompte(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/creerCompte`, payload);
+  }
+
   // Ajoutez d'autres méthodes pour d'autres endpoints (ex. connexion)
 }

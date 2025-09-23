@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
+import { CompteService } from '../../../compteservice';
 
 interface Compte {
   id: number;
@@ -18,33 +19,33 @@ interface Compte {
   templateUrl: './gestion-comptes.html',
   styleUrl: './gestion-comptes.css',
 })
-export class GestionComptes {
-  comptes: Compte[] = [
-    {
-      id: 1,
-      nom: 'Amadou Seye',
-      numero: '1234565',
-      type: 'Distributeur',
-      statut: 'Actif',
-      date: '16/09/2025 14:00',
-    },
-    {
-      id: 2,
-      nom: 'Amadou Seye',
-      numero: '1234565',
-      type: 'Client',
-      statut: 'Bloqué',
-      date: '16/09/2025 14:00',
-    },
-    {
-      id: 3,
-      nom: 'Amadou Seye',
-      numero: '1234565',
-      type: 'Client',
-      statut: 'Actif',
-      date: '16/09/2025 14:00',
-    },
-  ];
+export class GestionComptes implements OnInit {
+  comptes: Compte[] = [];
+
+  constructor(private compteService: CompteService) {}
+
+  ngOnInit(): void {
+    this.compteService.getAllComptes().subscribe({
+      next: (rows: any[]) => {
+        // rows contain c.* plus u.nom, u.prenom, u.role, u.dateCreation
+        this.comptes = (rows || []).map((r) => {
+          const id = r.idCompte ?? r.id ?? 0;
+          const fullName = `${r.nom ?? ''} ${r.prenom ?? ''}`.trim();
+          const numero = r.numeroCompte ?? '';
+          const role = String(r.role ?? '').toLowerCase();
+          const type = role === 'distributeur' ? 'Distributeur' : role === 'client' ? 'Client' : (role || '');
+          const isBlocked = Number(r.bloquer) === 1 || Number(r.archive) === 1;
+          const statut = isBlocked ? 'Bloqué' : 'Actif';
+          const date = r.dateCreation ?? '';
+          const view: Compte = { id, nom: fullName, numero, type, statut, date };
+          return view;
+        });
+      },
+      error: () => {
+        this.comptes = [];
+      },
+    });
+  }
 
   modifier(c: Compte) {
     alert(`Modifier compte ${c.numero}`);

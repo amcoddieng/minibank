@@ -33,6 +33,21 @@ export class TransactionService {
       .pipe(map((resp) => resp.results || []));
   }
 
+  // Lister transactions par idCompte (source ou destinataire)
+  getTransactionsByCompte(idCompte: number): Observable<Transaction[]> {
+    return this.http
+      .post<{ results: Transaction[] }>(`${this.apiUrl}/alltransactByidCompte`, { idCompte }, { headers: this.authHeaders() })
+      .pipe(map((resp) => resp.results || []));
+  }
+
+  // Rechercher une transaction par identifiant
+  searchTransaction(idtransaction: number): Observable<Transaction[]> {
+    const url = `${this.apiUrl}/Searchtransaction?idtransaction=${encodeURIComponent(String(idtransaction))}`;
+    return this.http
+      .get<{ resultats: Transaction[] }>(url, { headers: this.authHeaders() })
+      .pipe(map((resp) => resp.resultats || []));
+  }
+
   // Annuler une transaction par id
   annulerTransaction(id: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/annulerTransaction`, { idtransaction: id }, { headers: this.authHeaders() });
