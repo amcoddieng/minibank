@@ -1,3 +1,22 @@
+
+<!-- menu bouton transfert et modifier mot de passe -->
+<div class="container d-flex justify-content-center mt-3">
+      <button type="button" (click)="depot()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        depot
+    </button>
+      <button type="button" (click)="retrait()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        retrait
+    </button>
+    <button type="button" (click)="" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        Transfert
+    </button>
+
+    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;">
+        Annuler transaction
+    </button>
+</div>
+
+
 <div class="form-container">
     <h2 class="form-title">Transferez de l'argent</h2>
     <form [formGroup]="transForm">

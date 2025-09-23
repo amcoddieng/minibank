@@ -21,4 +21,4 @@ export const routes: Routes = [
     {path:'retrait',component:Retrait},
     {path:'transfertDistributeur',component:TransfertDistributeur}
 ];
- 
+  

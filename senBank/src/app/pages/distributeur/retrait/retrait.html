@@ -28,18 +28,18 @@
 </div>
 <!-- menu bouton transfert et modifier mot de passe -->
 <div class="container d-flex justify-content-center mt-3">
-      <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+      <button type="button" (click)="depot()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         depot
     </button>
       <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         retrait
     </button>
-    <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+    <button type="button" (click)="trans()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
         Transfert
     </button>
 
     <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;">
-        Modifier mot de passe
+        Annuler transaction
     </button>
 </div>
 
@@ -68,8 +68,8 @@
       <!-- Boutons -->
       <div class="d-flex justify-content-around">
         <button type="button" (click)="retrait()" class="btn btn-primary fw-bold " >Valider</button>
-        <button type="button" class="btn btn-primary fw-bold " >Annuler</button>
+        <button type="button" (click)="back()" class="btn btn-primary fw-bold " >Annuler</button>
       </div>
     </form>
   </div>
-</div>
+</div> 
