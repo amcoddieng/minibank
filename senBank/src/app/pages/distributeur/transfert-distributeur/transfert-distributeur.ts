@@ -57,4 +57,7 @@ export class TransfertDistributeur implements OnInit{
   retrait(){
     this.route.navigate(['retrait'])
   }
+  back(){
+    this.route.navigate(['profilDistributeur'])
+  }
 }
