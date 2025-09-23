@@ -10,7 +10,18 @@ const { sourceMapsEnabled } = require("process");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+ async function hashPassword(plainPassword) {
+        const saltRounds = 10; // Facteur de travail, plus élevé signifie plus sûr mais plus lent
+        try {
+            const salt = await bcrypt.genSalt(saltRounds);
+            const hashedPassword = await bcrypt.hash(plainPassword, salt);
+            console.log('Mot de passe haché:', hashedPassword);
+            return hashedPassword;
+        } catch (error) {
+            console.error('Erreur lors du hachage du mot de passe:', error);
+            throw error;
+        }
+    }
 // Middleware d'authentification
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -38,7 +49,21 @@ function generateId() {
     .slice(0, 8)                // max 8 caractères
     .toUpperCase();             // majuscules
 }
-                            
+
+// Fonction pour générer un numéro de compte unique (10 chiffres)
+function generateUniqueNumeroCompte(db, callback) {
+  const numero = generateId();
+
+  db.query(`SELECT idCompte FROM comptes WHERE numeroCompte = ?`, [numero], (err, results) => {
+    if (err) return callback(err);
+    if (results.length > 0) {
+      // Si le numéro existe déjà, réessayer
+      generateUniqueNumeroCompte(db, callback);
+    } else {
+      callback(null, numero);
+    }
+  });
+}
 // connexion a la base de donnee
 const db = mysql.createConnection({
     host: 'localhost',
@@ -483,19 +508,12 @@ app.post('/masksolde',authMiddleware, (req, res) => {
     }
   );
 });
-// creer un compte
+
+
+// Endpoint pour créer un utilisateur et son compte
+
 app.post('/usersCreate', (req, res) => {
-  const {
-    nom,
-    prenom,
-    dateNaissance,
-    lieuNaissance,
-    photo,
-    telephone,
-    adresse,
-    nin,
-    role
-  } = req.body;
+  const { nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role } = req.body;
 
   if (!nom || !prenom || !dateNaissance || !lieuNaissance || !telephone || !adresse || !nin || !role) {
     return res.status(400).json({ error: 'Tous les champs sont requis.' });
@@ -503,79 +521,122 @@ app.post('/usersCreate', (req, res) => {
 
   db.beginTransaction(err => {
     if (err) {
-      console.error('Erreur lors du démarrage de la transaction:', err);
+      console.error('Erreur lors du démarrage transaction:', err);
       return res.status(500).json({ error: 'Erreur interne du serveur1.' });
     }
 
-    // Créer l'utilisateur
+    // Vérifier unicité NIN et téléphone
     db.query(
-      `INSERT INTO users (nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role],
-      (err, result) => {
+      `SELECT * FROM users WHERE nin = ? OR telephone = ?`,
+      [nin, telephone],
+      (err, results) => {
         if (err) {
           return db.rollback(() => {
-            console.error('Erreur lors de la création de l\'utilisateur:', err);
+            console.error('Erreur vérification unicité:', err);
             res.status(500).json({ error: 'Erreur interne du serveur2.' });
           });
         }
 
-        const userId = result.insertId;
+        if (results.length > 0) {
+          return db.rollback(() => {
+            res.status(400).json({ error: 'NIN ou téléphone déjà utilisé.' });
+          });
+        }
 
-        // Créer la table associée selon le rôle
-        let sqlRole;
-        if (role === 'client') sqlRole = `INSERT INTO clients (iduser) VALUES (?)`;
-        else if (role === 'distributeur') sqlRole = `INSERT INTO distributeurs (iduser) VALUES (?)`;
-
-        const insertRole = () => {
-          if (!sqlRole) return commitUser(); // Si rôle 'agent' ou autre, on passe
-
-          db.query(sqlRole, [userId], (err, resultRole) => {
+        // Créer l'utilisateur
+        db.query(
+          `INSERT INTO users (nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role],
+          (err, resultUser) => {
             if (err) {
               return db.rollback(() => {
-                console.error('Erreur lors de la création du rôle:', err);
+                console.error('Erreur création utilisateur:', err);
                 res.status(500).json({ error: 'Erreur interne du serveur3.' });
               });
             }
-            commitUser();
-          });
-        };
 
-        // Créer le compte bancaire par défaut
-        const commitUser = () => {
-          const numeroCompte = generateId();
-          const sqlCompte = `INSERT INTO comptes (idusers, numeroCompte, solde, motDePasse) VALUES (?, ?, ?, ?)`;
-          db.query(sqlCompte, [userId, numeroCompte, 0, 'motdepasse123'], (err, resultCompte) => {
-            if (err) {
-              return db.rollback(() => {
-                console.error('Erreur lors de la création du compte:', err);
-                res.status(500).json({ error: 'Erreur interne du serveur4.' });
+            const userId = resultUser.insertId;
+
+            // Créer la table associée selon le rôle
+            const afterRole = () => {
+              // Hasher mot de passe
+              const defaultPassword = '1234';
+              bcrypt.hash(defaultPassword, 10, (err, hashedPassword) => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Erreur hash mot de passe:', err);
+                    res.status(500).json({ error: 'Erreur interne du serveur4.' });
+                  });
+                }
+
+                const numeroCompte = generateId();
+
+                // Créer le compte bancaire
+                db.query(
+                  `INSERT INTO comptes (idusers, numeroCompte, solde, motDePasse) VALUES (?, ?, ?, ?)`,
+                  [userId, numeroCompte, 0, hashedPassword],
+                  (err) => {
+                    if (err) {
+                      return db.rollback(() => {
+                        console.error('Erreur création compte:', err);
+                        res.status(500).json({ error: 'Erreur interne du serveur5.' });
+                      });
+                    }
+
+                    // Commit transaction
+                    db.commit(err => {
+                      if (err) {
+                        return db.rollback(() => {
+                          console.error('Erreur commit:', err);
+                          res.status(500).json({ error: 'Erreur interne du serveur6.' });
+                        });
+                      }
+
+                      res.status(201).json({
+                        message: 'Utilisateur et compte créés avec succès.',
+                        idUser: userId,
+                        numeroCompte
+                      });
+                    });
+                  }
+                );
               });
+            };
+
+            if (role === 'client') {
+              db.query(`INSERT INTO clients (iduser) VALUES (?)`, [userId], (err) => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Erreur création client:', err);
+                    res.status(500).json({ error: 'Erreur interne du serveur7.' });
+                  });
+                }
+                afterRole();
+              });
+            } else if (role === 'distributeur') {
+              db.query(`INSERT INTO distributeurs (iduser) VALUES (?)`, [userId], (err) => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Erreur création distributeur:', err);
+                    res.status(500).json({ error: 'Erreur interne du serveur8.' });
+                  });
+                }
+                afterRole();
+              });
+            } else {
+              // Si rôle = agent, on saute directement
+              afterRole();
             }
-
-            // Commit de la transaction
-            db.commit(err => {
-              if (err) {
-                return db.rollback(() => {
-                  console.error('Erreur lors du commit:', err);
-                  res.status(500).json({ error: 'Erreur interne du serveur5.' });
-                });
-              }
-
-              res.status(201).json({
-                message: 'Utilisateur et compte créés avec succès.',
-                idUser: userId,
-                numeroCompte: numeroCompte
-              });
-            });
-          });
-        };
-
-        insertRole();
+          }
+        );
       }
     );
   });
 });
+
+
+
 
 app.put('/users/:id', authMiddleware, (req, res) => {
   const userId = req.params.id;
