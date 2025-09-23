@@ -1,7 +1,9 @@
+
+
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Profilhead } from '../profilhead/profilhead';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth-gard';
 
 @Component({
   selector: 'app-profil2',
@@ -14,7 +16,7 @@ export class Profil2 implements OnInit{
   compte : any
   token: string | null = ""
     isBrowser: boolean;
-  constructor(@Inject(PLATFORM_ID) private platformId: Object,private route : Router) {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object,private route : Router,private AuthServ : AuthService) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
   ngOnInit(): void {

@@ -9,16 +9,16 @@ import { EditmdpDist } from './pages/distributeur/editmdp-dist/editmdp-dist';
 import { Depot } from './pages/distributeur/depot/depot';
 import { Retrait } from './pages/distributeur/retrait/retrait';
 import { TransfertDistributeur } from './pages/distributeur/transfert-distributeur/transfert-distributeur';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
-    {path:'connexion',component:Connexion},
-    {path:'profilClient',component:Profil},
-    {path:'profilDistributeur',component:Profil2},
-    {path:'editmdp',component:Editmdp},
-    {path:'transfertClient',component:Transfert},
-    {path:'editPassordDis',component:EditmdpDist},
-    {path:'depot',component:Depot},
-    {path:'retrait',component:Retrait},
-    {path:'transfertDistributeur',component:TransfertDistributeur}
+  { path: 'connexion', component: Connexion },
+  { path: 'profilClient', component: Profil, canActivate: [authGuard] },
+  { path: 'profilDistributeur', component: Profil2, canActivate: [authGuard] },
+  { path: 'editmdp', component: Editmdp, canActivate: [authGuard] },
+  { path: 'transfertClient', component: Transfert, canActivate: [authGuard] },
+  { path: 'editPassordDis', component: EditmdpDist, canActivate: [authGuard] },
+  { path: 'depot', component: Depot, canActivate: [authGuard] },
+  { path: 'retrait', component: Retrait, canActivate: [authGuard] },
+  { path: 'transfertDistributeur', component: TransfertDistributeur, canActivate: [authGuard] }
 ];
-  
