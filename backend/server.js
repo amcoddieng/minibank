@@ -853,6 +853,123 @@ app.post('/annulerTransaction', (req, res) => {
     );
   });
 });
+// transfert effectuer par distributeur
+app.post('/transfertDist', (req, res) => {
+  const { idCompte, compteDestinataire, montant } = req.body;
+  
+  if (!idCompte || !compteDestinataire || !montant || isNaN(montant) || montant <= 0) {
+    return res.status(400).json({ error: 'idCompte, compteDestinataire et montant (positif) sont requis.' });
+  }
+
+  const frais = montant * 0.02;
+  const montantTotal = montant - frais;
+
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('Erreur lors du démarrage de la transaction:', err);
+      return res.status(500).json({ error: 'Erreur interne du serveur1.' });
+    }
+
+    // Vérifier l'existence du compte source et le solde
+    db.query('SELECT solde, idusers FROM comptes WHERE idCompte = ?', [idCompte], (err, results) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error('Erreur lors de la vérification du compte source:', err);
+          res.status(500).json({ error: 'Erreur interne du serveur2.' });
+        });
+      }
+
+      if (results.length === 0) {
+        return db.rollback(() => {
+          res.status(404).json({ error: 'Compte source non trouvé.' });
+        });
+      }
+
+      const compteSource = results[0];
+      if (compteSource.solde < montantTotal) {
+        return db.rollback(() => {
+          res.status(400).json({ error: 'Solde insuffisant pour couvrir le montant.' });
+        });
+      }
+
+      db.query('SELECT idCompte FROM comptes WHERE numeroCompte = ?', [compteDestinataire], (err, results) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error('Erreur lors de la vérification du compte destinataire:', err);
+            res.status(500).json({ error: 'Erreur interne du serveur3.' });
+          });
+        }
+
+        if (results.length === 0) {
+          return db.rollback(() => {
+            res.status(404).json({ error: 'Compte destinataire non trouvé.' });
+          });
+        }
+
+        const idCompteDestinataire = results[0].idCompte;
+
+        // Débit du compte source (montant + frais)
+        db.query(
+          'UPDATE comptes SET solde = solde - ? WHERE idCompte = ?',
+          [montantTotal, idCompte],
+          (err, result) => {
+            if (err) {
+              return db.rollback(() => {
+                console.error('Erreur lors du débit:', err);
+                res.status(500).json({ error: 'Erreur interne du serveur4.' });
+              });
+            }
+
+            // Crédit du compte destinataire (montant uniquement)
+            db.query(
+              'UPDATE comptes SET solde = solde + ? WHERE idCompte = ?',
+              [montantTotal, idCompteDestinataire],
+              (err, result) => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Erreur lors du crédit:', err);
+                    res.status(500).json({ error: 'Erreur interne du serveur5.' });
+                  });
+                }
+
+                // Enregistrer la transaction
+                db.query(
+                  'INSERT INTO transactions (type, montant, frais, idCompteSource, idCompteDestinataire, etat, dateTransaction) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+                  ['transfert', montantTotal, frais, idCompte, idCompteDestinataire, 'reussi'],
+                  (err, result) => {
+                    if (err) {
+                      return db.rollback(() => {
+                        console.error('Erreur lors de l\'enregistrement de la transaction:', err);
+                        res.status(500).json({ error: 'Erreur interne du serveur6.' });
+                      });
+                    }
+
+                    // Valider la transaction
+                    db.commit(err => {
+                      if (err) {
+                        return db.rollback(() => {
+                          console.error('Erreur lors de la validation:', err);
+                          res.status(500).json({ error: 'Erreur interne du serveur7.' });
+                        });
+                      }
+
+                      res.status(200).json({
+                        message: 'Transfert effectué avec succès.',
+                        nouveauSoldeSource: compteSource.solde - montantTotal,
+                        montantTransfere: montant,
+                        frais: frais
+                      });
+                    });
+                  }
+                );
+              }
+            );
+          }
+        );
+      });
+    });
+  });
+});
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
 

@@ -1,3 +1,4 @@
+import { Transfert } from './../../../pages/client/transfert/transfert';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
@@ -6,6 +7,11 @@ interface depotData{
   client : string
   montant : number
   idCompte : number
+}
+interface transData{
+  idCompte : number
+  dest:string
+  montant:number
 }
 interface retraitData{
   client : string
@@ -23,5 +29,8 @@ export class DepotService {
   }
   retrait(data:retraitData){
     return this._http.post(environment.baseUrl + 'retrait',{numeroCompteClient:data.client, idCompteDistributeur:data.id, montant:data.montant})
+  }
+  transfert(data:transData){
+    return this._http.post(environment.baseUrl + "transfertDist",{idCompte:data.idCompte, compteDestinataire:data.dest, montant:data.montant })
   }
 }

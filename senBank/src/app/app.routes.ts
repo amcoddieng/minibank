@@ -1,3 +1,4 @@
+
 import { Routes } from '@angular/router';
 import { Connexion } from './pages/connexion/connexion';
 import { Profil } from './pages/client/profil/profil';
@@ -7,6 +8,7 @@ import { Transfert } from './pages/client/transfert/transfert';
 import { EditmdpDist } from './pages/distributeur/editmdp-dist/editmdp-dist';
 import { Depot } from './pages/distributeur/depot/depot';
 import { Retrait } from './pages/distributeur/retrait/retrait';
+import { TransfertDistributeur } from './pages/distributeur/transfert-distributeur/transfert-distributeur';
 
 export const routes: Routes = [
     {path:'connexion',component:Connexion},
@@ -16,6 +18,7 @@ export const routes: Routes = [
     {path:'transfertClient',component:Transfert},
     {path:'editPassordDis',component:EditmdpDist},
     {path:'depot',component:Depot},
-    {path:'retrait',component:Retrait}
+    {path:'retrait',component:Retrait},
+    {path:'transfertDistributeur',component:TransfertDistributeur}
 ];
  

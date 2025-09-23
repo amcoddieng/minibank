@@ -1,0 +1,30 @@
+<div class="form-container">
+    <h2 class="form-title">Transferez de l'argent</h2>
+    <form [formGroup]="transForm">
+    <div class="mb-3 row d-flex align-items-center">
+        <label for="numeroCompte" class="col-sm-6 col-form-label text-start form-label-custom">Numero compte Destinataire</label>
+        <div class="col-sm-6">
+            <input type="text" formControlName="dest" class="form-control form-control-custom" id="numeroCompte" >
+        </div>
+    </div>
+    
+    <div class="mb-3 row d-flex align-items-center">
+        <label for="montantEnvoyer" class="col-sm-6 col-form-label text-start form-label-custom">Montant a envoyer</label>
+        <div class="col-sm-6">
+            <input type="text" formControlName="montant" class="form-control form-control-custom" id="montantEnvoyer" >
+        </div>
+    </div>
+    
+    <div class="mb-3 row d-flex align-items-center">
+        <label for="montantRecu" class="col-sm-6 col-form-label text-start form-label-custom">Montant recu</label>
+        <div class="col-sm-6">
+            <input type="text" formControlName="montantRecu" class="form-control form-control-custom" id="montantRecu" >
+        </div>
+    </div>
+    
+    <div class="footer-buttons">
+        <button type="button" (click)="tranfert()" class="btn btn-primary me-5" >Envoyer</button>
+        <button type="button" class="btn btn-primary" >Annuler</button>
+    </div>
+</form>
+</div>
