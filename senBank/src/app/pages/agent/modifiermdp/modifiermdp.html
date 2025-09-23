@@ -1,0 +1,50 @@
+<div class="container d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="p-4 bg-white shadow rounded text-center" style="min-width: 350px">
+    <h5 class="fw-bold text-primary mb-4">Modifier votre mot de passe</h5>
+    <form>
+      <div class="mb-3 text-start">
+        <label for="ancienMotDePasse" class="form-label">Ancien mot de passe</label>
+        <input
+          type="password"
+          class="form-control"
+          id="ancienMotDePasse"
+          placeholder="Ancien mot de passe"
+          required
+        />
+      </div>
+      <div class="mb-3 text-start">
+        <label for="nouveauMotDePasse" class="form-label">Nouveau mot de passe</label>
+        <input
+          type="password"
+          class="form-control"
+          id="nouveauMotDePasse"
+          placeholder="Nouveau mot de passe"
+          required
+        />
+      </div>
+      <div class="mb-3 text-start">
+        <label for="confirmerMotDePasse" class="form-label"
+          >Confirmer le nouveau mot de passe</label
+        >
+        <input
+          type="password"
+          class="form-control"
+          id="confirmerMotDePasse"
+          placeholder="Confirmer le nouveau mot de passe"
+          required
+        />
+      </div>
+      <div class="mt-4 d-flex justify-content-center gap-4">
+        <!-- <button type="submit" class="btn btn-primary">Enregistrer</button> -->
+        <button
+          class="btn btn-primary"
+          onclick="alert('Vous avez modifier votre mot de passe avec succés ✅')"
+          routerLink="/accueil"
+        >
+          Enregistrer
+        </button>
+        <button type="reset" class="btn btn-outline-secondary" routerLink="/profil">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

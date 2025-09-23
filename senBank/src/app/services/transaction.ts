@@ -1,14 +1,40 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { Transaction } from '../models/transaction.model';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class TransactionService {
-  private apiUrl = 'http://localhost:3000/transactions'; // ton NestJS
+  private apiUrl = 'http://localhost:3000';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {}
 
-  annulerTransaction(transactionId: number): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${transactionId}/annuler`, {});
+  private authHeaders(): HttpHeaders {
+    let token = '';
+    if (isPlatformBrowser(this.platformId)) {
+      token = localStorage.getItem('token') || '';
+    }
+    return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+  }
+
+  // Effectuer un dépôt
+  depot(idCompte: number, compteDestinataire: string, montant: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/depot`, { idCompte, compteDestinataire, montant }, { headers: this.authHeaders() });
+  }
+
+  // Lister toutes les transactions
+  getAllTransactions(): Observable<Transaction[]> {
+    return this.http
+      .get<{ results: Transaction[] }>(`${this.apiUrl}/alltransaction`, { headers: this.authHeaders() })
+      .pipe(map((resp) => resp.results || []));
+  }
+
+  // Annuler une transaction par id
+  annulerTransaction(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/annulerTransaction`, { idtransaction: id }, { headers: this.authHeaders() });
   }
 }

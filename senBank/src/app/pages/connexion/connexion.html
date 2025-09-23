@@ -1,0 +1,31 @@
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
+    <h4 class="text-center mb-4">Connexion</h4>
+    <form [formGroup]="loginForm">
+      <div class="mb-3">
+        <input 
+          formControlName="username"
+          type="text" 
+          class="form-control border-0 border-bottom" 
+          placeholder="numeroCompte" 
+          name="numeroCompte"
+          required>
+      </div>
+      <div class="mb-3">
+        <input 
+          formControlName="password"
+          type="password" 
+          class="form-control border-0 border-bottom" 
+          placeholder="Mot de passe" 
+          name="motDePasse"
+          required>
+      </div>
+      <div class="d-grid">
+        <button type="button" (click)="connexion()" class="btn btn-primary" value="Connexion">
+        Connexion
+        </button>
+        
+      </div>
+    </form>
+  </div>
+</div>

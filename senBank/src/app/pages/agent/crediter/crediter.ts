@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 // import { Account } from '../../../services/account';
 
 @Component({
   selector: 'app-crediter',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, RouterLink],
   templateUrl: './crediter.html',
   styleUrl: './crediter.css',
   // providers: [Account],

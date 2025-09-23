@@ -1,0 +1,72 @@
+<div class="container mt-3 text-white shadow" style="background-color: #2E88C7;">
+  <div class="row text-center  ">
+    <div class="card-body " style="background-color: #2E88C7;">
+      <!-- Solde -->
+      <h4 class="fw-bold  mb-3">
+        {{compte.solde}} F
+        <i class="bi bi-eye-slash"></i>
+      </h4>
+
+      <!-- QR Code et profil -->
+      <div class="row align-items-center">
+        <!-- Profil -->
+        <div class="col-12 col-md-7 d-flex align-items-center mb-3 mb-md-0">
+          <!-- Photo -->
+          <div class="me-3" style="flex:0 0 70px;">
+            <img src="icones/{{user.photo}}" alt="Photo" class="img-fluid rounded border">
+          </div>
+          <!-- Infos -->
+          <div class="text-start">
+            <p class="mb-1"><small>N° Compte : <b>{{compte.numeroCompte}}</b></small></p>
+            <p class="mb-1"><small>Nom : <b>{{user.prenom}} {{user.nom}}</b></small></p>
+            <p class="mb-0"><small>Rôle : <b>{{user.role}}</b></small></p>
+          </div>
+        </div>
+
+        <!-- QR Code généré -->
+        <div class="col-12 col-md-5 text-center">
+<div *ngIf="isBrowser">
+  <qrcode 
+    [qrdata]="qrData" 
+    [width]="150" 
+    [errorCorrectionLevel]="'M'">
+  </qrcode>
+</div>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- menu bouton transfert et modifier mot de passe -->
+<div class="container d-flex justify-content-center mt-3">
+    <button class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        Transfert
+    </button>
+    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;" (click)="goEditmdp()">
+        Modifier mot de passe
+    </button>
+</div>
+<div class="row mt-2 bg-light p-2 align-items-center">
+    <!-- Titre -->
+    <div class="col-6  d-flex align-items-center">
+        <h5 class="mb-0">Historique</h5>
+    </div>
+
+    <!-- Filtre -->
+    <div class="col-3  d-flex align-items-center justify-content-center">
+        <select class="form-select form-select-sm">
+            <option value="">Tous</option>
+            <option value="depot">Dépôt</option>
+            <option value="retrait">Retrait</option>
+            <option value="transfert">Transfert</option>
+        </select>
+    </div>
+
+    <!-- Recherche -->
+    <div class="col-3  d-flex align-items-center">
+        <input type="text" class="form-control form-control-sm me-2" placeholder="Recherche...">
+        <button class="btn btn-sm"  style="background-color: #2E88C7;">Rechercher</button>
+    </div>
+</div>

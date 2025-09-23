@@ -1,67 +1,55 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-
-interface Transaction {
-  id: number;
-  type: string;
-  destinataire: string;
-  montant: number;
-  date: string;
-  statut: string;
-}
+import { RouterLink, RouterModule } from '@angular/router';
+import { Transaction } from '../../../models/transaction.model';
+import { TransactionService } from '../../../services/transaction';
 
 @Component({
   selector: 'app-annulation',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, RouterLink],
   templateUrl: './annulation.html',
-  styleUrl: './annulation.css',
+  styleUrls: ['./annulation.css'],
 })
-export class Annulation {
-  // transactionId = 0;
-  // message = '';
+export class Annulation implements OnInit {
+  loading = false;
+  error: string | null = null;
+  transactions: Transaction[] = [];
 
-  // constructor(private transaction: Transaction) {}
+  constructor(private txService: TransactionService) {}
 
-  // annulerTransaction() {
-  //   this.transaction.annulerTransaction(this.transactionId).subscribe({
-  //     next: () => (this.message = 'Transaction annulée !'),
-  //     error: () => (this.message = 'Erreur lors de l’annulation'),
-  //   });
-  
+  ngOnInit(): void {
+    this.loadTransactions();
+  }
 
-  transactions: Transaction[] = [
-    {
-      id: 1,
-      type: 'Transfert',
-      destinataire: 'Amadou Seye',
-      montant: 20000,
-      date: '16/09/2025 14:00',
-      statut: 'Actif',
-    },
-    {
-      id: 2,
-      type: 'Transfert',
-      destinataire: 'Amadou Seye',
-      montant: 20000,
-      date: '16/09/2025 14:00',
-      statut: 'Actif',
-    },
-    {
-      id: 3,
-      type: 'Transfert',
-      destinataire: 'Amadou Seye',
-      montant: 20000,
-      date: '16/09/2025 14:00',
-      statut: 'Annulé',
-    },
-  ];
+  loadTransactions() {
+    this.loading = true;
+    this.error = null;
+    this.txService.getAllTransactions().subscribe({
+      next: (list) => {
+        this.transactions = list;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Erreur lors du chargement';
+        this.loading = false;
+      },
+    });
+  }
 
-//   annulerTransaction(t: Transaction) {
-//     if (t.statut !== 'Annulé') {
-//       t.statut = 'Annulé';
-//       alert(`Transaction ${t.id} annulée`);
-//     }
-//   }
- }
+  annuler(t: Transaction) {
+    if (t.etat === 'annule') return;
+    const ok = confirm(`Confirmer l'annulation de la transaction #${t.id} ?`);
+    if (!ok) return;
+    this.loading = true;
+    this.txService.annulerTransaction(t.id).subscribe({
+      next: () => {
+        this.loadTransactions();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Annulation impossible';
+        this.loading = false;
+      },
+    });
+  }
+}

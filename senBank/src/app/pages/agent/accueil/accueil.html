@@ -1,33 +1,31 @@
-
-<!-- PAGE DASHBOARD AGENT -->
-<div id="dashboardPage">
-  <!-- Section Profil Utilisateur -->
-  <div class="user-profile-section">
-    <div class="container">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center">
-          <div class="user-avatar me-4">
-            <i class="fas fa-user"></i>
-          </div>
-          <div>
-            <a href=""><h2 class="user-name">Amadou Dieng (Agent)</h2></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<app-header-profil></app-header-profil>
+<div class="mt-4" id="dashboardPage">
   <div class="container">
     <!-- Boutons d'action -->
     <div class="row action-buttons">
       <div class="col-md-4">
-        <button class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" [routerLink]="['/app-crediter']">Créditer un compte</button>
+        <button
+          class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3"
+          [routerLink]="['/crediter']"
+        >
+          Créditer un compte
+        </button>
       </div>
       <div class="col-md-4">
-        <button class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" [routerLink]="['/gestion-comptes']">Gérer les comptes</button>
+        <button
+          class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3"
+          [routerLink]="['/gestion-comptes']"
+        >
+          Gérer les comptes
+        </button>
       </div>
       <div class="col-md-4">
-        <button class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" [routerLink]="['/annulation']">Annuler transaction</button>
+        <button
+          class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3"
+          [routerLink]="['/annulation']"
+        >
+          Annuler transaction
+        </button>
       </div>
     </div>
 
@@ -35,39 +33,22 @@
     <div class="history-section">
       <h3 class="history-header">Historique des comptes créés</h3>
       <div id="accountsHistory">
-        <div class="account-item">
+        <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+        <div *ngIf="!loading && !error && comptes.length === 0" class="text-muted">Aucun compte trouvé.</div>
+
+        <div class="account-item" *ngFor="let c of comptes">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="account-name">Amadou Seye</div>
-              <div class="account-number">1234565 (Client)</div>
-              <div class="account-date">14:00, 16/09/2025</div>
+              <div class="account-name">{{ c.nom || '—' }} {{ c.prenom || '' }}</div>
+              <div class="account-number">N° Compte: {{ c.numeroCompte }}</div>
+              <div class="account-number">Rôle: {{ c.role || '—' }}</div>
+              <div class="account-date">Créé le: {{ c.dateCreation | date:'short' }}</div>
             </div>
             <div>
-              <span class="status-badge status-active">Actif</span>
-            </div>
-          </div>
-        </div>
-        <div class="account-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <div class="account-name">Amadou Seye</div>
-              <div class="account-number">1234565 (Client)</div>
-              <div class="account-date">14:00, 16/09/2025</div>
-            </div>
-            <div>
-              <span class="status-badge status-blocked">Bloqué</span>
-            </div>
-          </div>
-        </div>
-        <div class="account-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <div class="account-name">Amadou Seye</div>
-              <div class="account-number">1234565 (Client)</div>
-              <div class="account-date">14:00, 16/09/2025</div>
-            </div>
-            <div>
-              <span class="status-badge status-active">Actif</span>
+              <span *ngIf="c.archive === 1" class="status-badge status-blocked">Supprimé</span>
+              <span *ngIf="c.archive !== 1 && c.bloquer === 1" class="status-badge status-blocked">Bloqué</span>
+              <span *ngIf="c.archive !== 1 && c.bloquer !== 1" class="status-badge status-active">Actif</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 
 interface Compte {
   id: number;
@@ -14,7 +14,7 @@ interface Compte {
 @Component({
   selector: 'app-gestion-comptes',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, RouterLink],
   templateUrl: './gestion-comptes.html',
   styleUrl: './gestion-comptes.css',
 })

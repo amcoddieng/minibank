@@ -1,30 +1,33 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="#" class="btn btn-outline-secondary">
+    <a routerLink="/accueil" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left"></i>
     </a>
     <h4 class="fw-bold text-primary">Annuler transaction</h4>
-    <div class="input-group w-25">
-      <input type="text" class="form-control" placeholder="Numéro compte" />
-      <button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
-    </div>
+    <div></div>
   </div>
-  
 
-  <div class="list-group">
-    <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
+  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="list-group" *ngIf="!loading">
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2" *ngFor="let t of transactions">
       <div>
-        <strong>Transfert à Amadou Seye 20 000F</strong><br />
-        <small>14:00, 16/09/2025</small>
+        <strong class="text-capitalize">{{ t.type }}</strong>
+        <span class="ms-2">Montant: {{ t.montant | number:'1.0-0' }} F</span>
+        <span class="badge ms-2" [ngClass]="{
+          'bg-success': t.etat === 'reussi',
+          'bg-secondary': t.etat === 'annule',
+          'bg-warning': t.etat !== 'reussi' && t.etat !== 'annule'
+        }">{{ t.etat }}</span>
+        <br />
+        <small>
+          ID: {{ t.id }} • Source: {{ t.idCompteSource }} → Dest: {{ t.idCompteDestinataire }} • {{ t.dateTransaction | date:'short' }}
+        </small>
       </div>
-      <button class="btn btn-danger">Annuler</button>
-    </div>
-    <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
-      <div>
-        <strong>Transfert de Amadou Seye 20 000F</strong><br />
-        <small>14:00, 16/09/2025</small>
-      </div>
-      <button class="btn btn-danger">Annuler</button>
+      <button class="btn btn-danger" (click)="annuler(t)" [disabled]="t.etat === 'annule' || loading">
+        Annuler
+      </button>
     </div>
   </div>
 </div>

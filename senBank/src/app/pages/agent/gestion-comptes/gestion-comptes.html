@@ -1,17 +1,31 @@
+<div class="d-block">
+  <a href="#" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="#" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i>
-    </a>
-    <h4 class="fw-bold text-primary">Gestion des comptes créés</h4>
+  <div class="d-block">
+    <button
+      class="action-btn p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3 float-end"
+      [routerLink]="['/creer-compte']"
+    >
+      Créer un compte
+    </button>
+  </div>
+  <div class="d-block justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary col-4">Gestion des comptes créés</h4>
     <div class="d-flex">
-      <input type="text" class="form-control me-2" placeholder="Rechercher..." />
-      <select class="form-select w-auto me-2">
-        <option>Type</option>
-        <option>Client</option>
-        <option>Distributeur</option>
-      </select>
-      <button class="action-btn" [routerLink]="['/creer-compte']">Créer un compte</button>
+      <div class="me-2 d-flex">
+        <input type="text" class="form-control" placeholder="Numéro compte" />
+        <button class="btn btn-outline-secondary ps-4"><i class="bi bi-search"></i></button>
+      </div>
+      <div>
+        <select class="me-2">
+          <option>Type</option>
+          <option>Client</option>
+          <option>Distributeur</option>
+        </select>
+      </div>
     </div>
   </div>
 

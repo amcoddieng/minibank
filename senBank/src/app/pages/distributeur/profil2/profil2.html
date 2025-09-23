@@ -1,0 +1,24 @@
+<div class="container bg-primary mt-4">
+  <div class="row g-3">
+    <!-- Carte utilisateur -->
+    <div class="col-12 col-md-6">
+      <div class="row border rounded p-2">
+        <!-- Photo -->
+        <div class="col-6 border rounded text-center">
+          <img src="icones/{{user.photo}}" alt="Photo profil" class="img-fluid rounded">
+        </div>
+        <!-- Informations -->
+        <div class="col-6 border rounded d-flex flex-column justify-content-center">
+          <h5>{{ user.nom }} {{ user.prenom}} </h5>
+          <p> {{ user.role }} </p>
+          <p> {{ compte.numeroCompte }} </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Autre section -->
+    <div class="col-12 col-md-6 border d-flex justify-content-end rounded p-2">
+      Solde : 120.989 fcfa logo
+    </div>
+  </div>
+</div>
