@@ -484,7 +484,7 @@ app.post('/masksolde',authMiddleware, (req, res) => {
   );
 });
 // creer un compte
-app.post('/usersT', (req, res) => {
+app.post('/usersCreate', (req, res) => {
   const {
     nom,
     prenom,
@@ -577,6 +577,146 @@ app.post('/usersT', (req, res) => {
   });
 });
 
+app.put('/users/:id', authMiddleware, (req, res) => {
+  const userId = req.params.id;
+  const {
+    nom,
+    prenom,
+    dateNaissance,
+    lieuNaissance,
+    photo,
+    telephone,
+    adresse,
+    nin,
+    role
+  } = req.body;
+
+  if (!nom && !prenom && !dateNaissance && !lieuNaissance && !photo && !telephone && !adresse && !nin && !role) {
+    return res.status(400).json({ error: 'Au moins un champ doit être fourni pour la modification.' });
+  }
+
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('Erreur lors du démarrage de la transaction:', err);
+      return res.status(500).json({ error: 'Erreur interne du serveur1.' });
+    }
+
+    // Mettre à jour l'utilisateur
+    const sqlUser = `
+      UPDATE users SET 
+        nom = COALESCE(?, nom),
+        prenom = COALESCE(?, prenom),
+        dateNaissance = COALESCE(?, dateNaissance),
+        lieuNaissance = COALESCE(?, lieuNaissance),
+        photo = COALESCE(?, photo),
+        telephone = COALESCE(?, telephone),
+        adresse = COALESCE(?, adresse),
+        nin = COALESCE(?, nin),
+        role = COALESCE(?, role),
+        updatedate = NOW()
+      WHERE idUser = ?
+    `;
+    db.query(sqlUser, [nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role, userId], (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error('Erreur lors de la modification de l\'utilisateur:', err);
+          res.status(500).json({ error: 'Erreur interne du serveur2.' });
+        });
+      }
+
+      //  Si le rôle a changé, mettre à jour la table associée
+      if (role) {
+        const sqlDeleteRoleTables = `
+          DELETE FROM clients WHERE iduser = ?;
+          DELETE FROM distributeurs WHERE iduser = ?;
+        `;
+        db.query(sqlDeleteRoleTables, [userId, userId], (err, resultRole) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error('Erreur lors de la suppression des anciens rôles:', err);
+              res.status(500).json({ error: 'Erreur interne du serveur3.' });
+            });
+          }
+
+          let sqlInsertRole;
+          if (role === 'client') sqlInsertRole = `INSERT INTO clients (iduser) VALUES (?)`;
+          else if (role === 'distributeur') sqlInsertRole = `INSERT INTO distributeurs (iduser) VALUES (?)`;
+
+          if (sqlInsertRole) {
+            db.query(sqlInsertRole, [userId], (err, resultNewRole) => {
+              if (err) {
+                return db.rollback(() => {
+                  console.error('Erreur lors de l\'insertion du nouveau rôle:', err);
+                  res.status(500).json({ error: 'Erreur interne du serveur4.' });
+                });
+              }
+              db.commit(err => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Erreur lors du commit:', err);
+                    res.status(500).json({ error: 'Erreur interne du serveur5.' });
+                  });
+                }
+                res.status(200).json({ message: 'Utilisateur modifié avec succès.' });
+              });
+            });
+          } else {
+            // Si rôle = agent, commit directement
+            db.commit(err => {
+              if (err) return db.rollback(() => res.status(500).json({ error: 'Erreur lors du commit.' }));
+              res.status(200).json({ message: 'Utilisateur modifié avec succès.' });
+            });
+          }
+        });
+      } else {
+        // Si le rôle n’a pas changé, commit directement
+        db.commit(err => {
+          if (err) return db.rollback(() => res.status(500).json({ error: 'Erreur lors du commit.' }));
+          res.status(200).json({ message: 'Utilisateur modifié avec succès.' });
+        });
+      }
+    });
+  });
+});
+
+// archiver
+app.post('/archiver', authMiddleware, (req, res) => {
+  const { idCompte, archive } = req.body;
+
+  if (typeof idCompte === 'undefined' || typeof archive === 'undefined') {
+    return res.status(400).json({ error: 'idCompte et archive sont requis.' });
+  }
+
+  db.query(
+    'UPDATE comptes SET archive = ? WHERE idCompte = ?',
+    [archive ? 1 : 0, idCompte],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Compte non trouvé.' });
+
+      res.status(200).json({ message: archive ? 'Compte archivé.' : 'Compte désarchivé.' });
+    }
+  );
+});
+// bloquer
+app.post('/comptes/bloquer', authMiddleware, (req, res) => {
+  const { idCompte, bloquer } = req.body;
+
+  if (typeof idCompte === 'undefined' || typeof bloquer === 'undefined') {
+    return res.status(400).json({ error: 'idCompte et bloquer sont requis.' });
+  }
+
+  db.query(
+    'UPDATE comptes SET bloquer = ? WHERE idCompte = ?',
+    [bloquer ? 1 : 0, idCompte],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Compte non trouvé.' });
+
+      res.status(200).json({ message: bloquer ? 'Compte bloqué.' : 'Compte débloqué.' });
+    }
+  );
+});
 
 // tranfert faite par le client
 app.post('/transfert', authMiddleware,(req, res) => {
