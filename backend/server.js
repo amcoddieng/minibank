@@ -13,17 +13,22 @@ app.use(express.json());
 
 // Middleware d'authentification
 const authMiddleware = (req, res, next) => {
-  const token = req.headers["authorization"];
-  if (!token) return res.status(401).json({ error: "Token requis." });
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return res.status(401).json({ error: "Token requis." });
+
+  const token = authHeader.split(" ")[1]; // récupère le token après 'Bearer'
+  if (!token) return res.status(401).json({ error: "Token manquant." });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // cohérence
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: "Token invalide." });
   }
 };
+
+
 // generer numero compte
 
 function generateId() {
@@ -33,9 +38,7 @@ function generateId() {
     .slice(0, 8)                // max 8 caractères
     .toUpperCase();             // majuscules
 }
-
-console.log(generateId()); // ex: "A7K9ZQ3B"
-
+                            
 // connexion a la base de donnee
 const db = mysql.createConnection({
     host: 'localhost',
@@ -130,7 +133,7 @@ app.post('/connexionAgent',(req,res)=>{
 }
 )
 // recuperer profil
-app.post('/profil', (req, res) => {
+app.post('/profil',authMiddleware, (req, res) => {
   const { idUsers } = req.body;
 
   // Validation de l'entrée
@@ -157,7 +160,7 @@ app.post('/profil', (req, res) => {
   );
 });
 // verification user
-app.post('/userExiste',(req,res)=>{
+app.post('/userExiste',authMiddleware,(req,res)=>{
   const {iduser} = req.body
   db.query(
     'select * from users where idUser = ?',
@@ -229,63 +232,8 @@ app.post('/editpassword',authMiddleware,(req,res)=>{
   )
 })
 // depot  chez le distributeur
-app.post('/depot', (req, res) => {
-  const { idCompte, compteDestinataire, montant } = req.body;
-  const commission = montant * 0.01;
-  const montantDebiter = montant - commission;
-
-  db.beginTransaction(err => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    // Vérifier solde du compte source
-    db.query('SELECT solde FROM comptes WHERE idCompte = ?', [idCompte], (err, results) => {
-      if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-      if (results.length === 0) return db.rollback(() => res.status(404).json({ error: 'Compte source introuvable' }));
-      if (results[0].solde < montantDebiter) return db.rollback(() => res.status(400).json({ error: 'Solde insuffisant' }));
-
-      // Débit du compte source
-      db.query('UPDATE comptes SET solde = solde - ? WHERE idCompte = ?', [montantDebiter, idCompte], (err) => {
-        if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-
-        // Crédit du compte destinataire
-        db.query('UPDATE comptes SET solde = solde + ? WHERE numeroCompte = ?', [montant, compteDestinataire], (err) => {
-          if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-
-          // Récupérer idCompte destinataire
-          db.query('SELECT idCompte FROM comptes WHERE numeroCompte = ?', [compteDestinataire], (err, results) => {
-            if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-
-            const idCompteDestinataire = results[0].idCompte;
-
-            // Enregistrer la transaction
-            db.query(
-              'INSERT INTO transactions (type, montant, frais, idCompteSource, idCompteDestinataire, etat, dateTransaction) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-              ['depot', montant, commission, idCompte, idCompteDestinataire, 'reussi'],
-              (err) => {
-                if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-
-                // Valider la transaction
-                db.commit(err => {
-                  if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-
-                  res.status(200).json({
-                    message: 'depot effectué avec succès',
-                    montantTransfere: montant,
-                    frais: commission,
-                    montantDebite: montantDebiter
-                  });
-                });
-              }
-            );
-          });
-        });
-      });
-    });
-  });
-});
-// app.post('/depot', authMiddleware, (req, res) => {
-//   const { compteDestinataire, montant } = req.body;
-//   const idCompte = req.user.idCompte; // récupéré du token
+// app.post('/depot', (req, res) => {
+//   const { idCompte, compteDestinataire, montant } = req.body;
 //   const commission = montant * 0.01;
 //   const montantDebiter = montant - commission;
 
@@ -310,10 +258,6 @@ app.post('/depot', (req, res) => {
 //           db.query('SELECT idCompte FROM comptes WHERE numeroCompte = ?', [compteDestinataire], (err, results) => {
 //             if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
 
-//             if (results.length === 0) {
-//               return db.rollback(() => res.status(404).json({ error: 'Compte destinataire introuvable' }));
-//             }
-
 //             const idCompteDestinataire = results[0].idCompte;
 
 //             // Enregistrer la transaction
@@ -328,7 +272,7 @@ app.post('/depot', (req, res) => {
 //                   if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
 
 //                   res.status(200).json({
-//                     message: 'Depot effectué avec succès',
+//                     message: 'depot effectué avec succès',
 //                     montantTransfere: montant,
 //                     frais: commission,
 //                     montantDebite: montantDebiter
@@ -342,9 +286,68 @@ app.post('/depot', (req, res) => {
 //     });
 //   });
 // });
+app.post('/depot', authMiddleware, (req, res) => {
+  const { compteDestinataire, montant } = req.body;
+  const idCompte = req.user.idCompte; // récupéré du token
+  const commission = montant * 0.01;
+  const montantDebiter = montant - commission;
+
+  db.beginTransaction(err => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // Vérifier solde du compte source
+    db.query('SELECT solde FROM comptes WHERE idCompte = ?', [idCompte], (err, results) => {
+      if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+      if (results.length === 0) return db.rollback(() => res.status(404).json({ error: 'Compte source introuvable' }));
+      if (results[0].solde < montantDebiter) return db.rollback(() => res.status(400).json({ error: 'Solde insuffisant' }));
+
+      // Débit du compte source
+      db.query('UPDATE comptes SET solde = solde - ? WHERE idCompte = ?', [montantDebiter, idCompte], (err) => {
+        if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+        // Crédit du compte destinataire
+        db.query('UPDATE comptes SET solde = solde + ? WHERE numeroCompte = ?', [montant, compteDestinataire], (err) => {
+          if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+          // Récupérer idCompte destinataire
+          db.query('SELECT idCompte FROM comptes WHERE numeroCompte = ?', [compteDestinataire], (err, results) => {
+            if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+            if (results.length === 0) {
+              return db.rollback(() => res.status(404).json({ error: 'Compte destinataire introuvable' }));
+            }
+
+            const idCompteDestinataire = results[0].idCompte;
+
+            // Enregistrer la transaction
+            db.query(
+              'INSERT INTO transactions (type, montant, frais, idCompteSource, idCompteDestinataire, etat, dateTransaction) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+              ['depot', montant, commission, idCompte, idCompteDestinataire, 'reussi'],
+              (err) => {
+                if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+                // Valider la transaction
+                db.commit(err => {
+                  if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
+
+                  res.status(200).json({
+                    message: 'Depot effectué avec succès',
+                    montantTransfere: montant,
+                    frais: commission,
+                    montantDebite: montantDebiter
+                  });
+                });
+              }
+            );
+          });
+        });
+      });
+    });
+  });
+});
 
 // retrait chez le distributeur
-app.post('/retrait', (req, res) => {
+app.post('/retrait',authMiddleware, (req, res) => {
   const { numeroCompteClient, idCompteDistributeur, montant } = req.body;
   const commission = montant * 0.01; // frais éventuels pour le distributeur
   const montantTotal = montant + commission; // montant total à transférer du client au distributeur
@@ -396,7 +399,7 @@ app.post('/retrait', (req, res) => {
   });
 });
 // lister tout les transactions
-app.get('/alltransaction',(req,res)=>{
+app.get('/alltransaction',authMiddleware,(req,res)=>{
   db.query(
     'select * from transactions',
     (err,results)=>{
@@ -407,7 +410,7 @@ app.get('/alltransaction',(req,res)=>{
   )
 })
 // liste de transaction d'un user
-app.post('/alltransactByidCompte',(req,res)=>{
+app.post('/alltransactByidCompte',authMiddleware,(req,res)=>{
   const {idCompte} = req.body
   db.query(
     'select * from transactions where idCompteSource = ? OR idCompteDestinataire = ?',
@@ -420,7 +423,7 @@ app.post('/alltransactByidCompte',(req,res)=>{
   )
 })
 // recherche transaction par idtransaction
-app.get('/Searchtransaction',(req,res)=>{
+app.get('/Searchtransaction',authMiddleware,(req,res)=>{
   const {idtransaction} = req.body
   db.query(
     'select * from transactions where id = ?',
@@ -433,7 +436,7 @@ app.get('/Searchtransaction',(req,res)=>{
   )
 })
 // afficher tous les comptes
-app.get('/comptes', (req, res) => {
+app.get('/comptes',authMiddleware, (req, res) => {
     db.query('SELECT * FROM comptes', (err, results) => {
         if (err) {
             return res.status(500).json({ error: err.message })
@@ -442,7 +445,7 @@ app.get('/comptes', (req, res) => {
     })
 })
 // lister tout les comptes : trier par role
-app.get('/comptesByrole/:role', (req, res) => {
+app.get('/comptesByrole/:role',authMiddleware,(req, res) => {
   const { role } = req.params;
 
   // Validation du rôle
@@ -468,7 +471,7 @@ app.get('/comptesByrole/:role', (req, res) => {
   );
 });
 // masque solde
-app.post('/masksolde', (req, res) => {
+app.post('/masksolde',authMiddleware, (req, res) => {
   const { idCompte, ismask } = req.body;
   
   db.query(
@@ -481,24 +484,102 @@ app.post('/masksolde', (req, res) => {
   );
 });
 // creer un compte
-// app.post('creerCompte',(req,res)=>{
-//   const {nom,prenom,datenais,lieunais,photo,telephone,adresse,nin,role} = req.body
-  
-//   db.query(
-//     'insert into users (nom,prenom,dateNaisance,lieuNaissance,photo,telephone,adresse,nin,role) VALUES (?,?,?,?,?,?,?,?,?)',
-//     [nom,prenom,datenais,lieunais,photo,telephone,adresse,nin,role],
-//     (req,res)=>{
-//       if(err)
-//         return res.status(500).json({error: err.message})
-//       db.query(
-//         'insert into comptes ()'
-//       )
-//     }
-//   )
-// })
+app.post('/usersT', (req, res) => {
+  const {
+    nom,
+    prenom,
+    dateNaissance,
+    lieuNaissance,
+    photo,
+    telephone,
+    adresse,
+    nin,
+    role
+  } = req.body;
+
+  if (!nom || !prenom || !dateNaissance || !lieuNaissance || !telephone || !adresse || !nin || !role) {
+    return res.status(400).json({ error: 'Tous les champs sont requis.' });
+  }
+
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('Erreur lors du démarrage de la transaction:', err);
+      return res.status(500).json({ error: 'Erreur interne du serveur1.' });
+    }
+
+    // Créer l'utilisateur
+    db.query(
+      `INSERT INTO users (nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nom, prenom, dateNaissance, lieuNaissance, photo, telephone, adresse, nin, role],
+      (err, result) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error('Erreur lors de la création de l\'utilisateur:', err);
+            res.status(500).json({ error: 'Erreur interne du serveur2.' });
+          });
+        }
+
+        const userId = result.insertId;
+
+        // Créer la table associée selon le rôle
+        let sqlRole;
+        if (role === 'client') sqlRole = `INSERT INTO clients (iduser) VALUES (?)`;
+        else if (role === 'distributeur') sqlRole = `INSERT INTO distributeurs (iduser) VALUES (?)`;
+
+        const insertRole = () => {
+          if (!sqlRole) return commitUser(); // Si rôle 'agent' ou autre, on passe
+
+          db.query(sqlRole, [userId], (err, resultRole) => {
+            if (err) {
+              return db.rollback(() => {
+                console.error('Erreur lors de la création du rôle:', err);
+                res.status(500).json({ error: 'Erreur interne du serveur3.' });
+              });
+            }
+            commitUser();
+          });
+        };
+
+        // Créer le compte bancaire par défaut
+        const commitUser = () => {
+          const numeroCompte = generateId();
+          const sqlCompte = `INSERT INTO comptes (idusers, numeroCompte, solde, motDePasse) VALUES (?, ?, ?, ?)`;
+          db.query(sqlCompte, [userId, numeroCompte, 0, 'motdepasse123'], (err, resultCompte) => {
+            if (err) {
+              return db.rollback(() => {
+                console.error('Erreur lors de la création du compte:', err);
+                res.status(500).json({ error: 'Erreur interne du serveur4.' });
+              });
+            }
+
+            // Commit de la transaction
+            db.commit(err => {
+              if (err) {
+                return db.rollback(() => {
+                  console.error('Erreur lors du commit:', err);
+                  res.status(500).json({ error: 'Erreur interne du serveur5.' });
+                });
+              }
+
+              res.status(201).json({
+                message: 'Utilisateur et compte créés avec succès.',
+                idUser: userId,
+                numeroCompte: numeroCompte
+              });
+            });
+          });
+        };
+
+        insertRole();
+      }
+    );
+  });
+});
+
 
 // tranfert faite par le client
-app.post('/transfert', (req, res) => {
+app.post('/transfert', authMiddleware,(req, res) => {
   const { idCompte, compteDestinataire, montant } = req.body;
 
   
@@ -616,7 +697,7 @@ app.post('/transfert', (req, res) => {
   });
 });
 // le nombre de client
-app.get('/nbrClient',(req,res)=>{
+app.get('/nbrClient',authMiddleware,(req,res)=>{
   db.query(
     'select count(id) as nbrClient from clients',
     (err,result)=>{
@@ -627,7 +708,7 @@ app.get('/nbrClient',(req,res)=>{
   )
 })
 // le nombre de distributeur
-app.get('/nbrDistributeur',(req,res)=>{
+app.get('/nbrDistributeur',authMiddleware,(req,res)=>{
   db.query(
     'select count(id) as nbrDistributeur from distributeurs',
     (err,result)=>{
@@ -638,7 +719,7 @@ app.get('/nbrDistributeur',(req,res)=>{
   )
 })
 // crediter un compte distributeur
-app.post('/crediterCompte', (req, res) => {
+app.post('/crediterCompte',authMiddleware, (req, res) => {
   const { idCompte, montant } = req.body;
   db.beginTransaction(err => {
   if (err) return res.status(500).json({ error: err.message });
@@ -665,7 +746,7 @@ app.post('/crediterCompte', (req, res) => {
 
 });
 // debiter un compte distributeur
-app.post('/debiterCompte', (req, res) => {
+app.post('/debiterCompte',authMiddleware,(req, res) => {
   const { idCompte, montant } = req.body;
   db.beginTransaction(err => {
   if (err) return res.status(500).json({ error: err.message });
@@ -692,7 +773,7 @@ app.post('/debiterCompte', (req, res) => {
 
 });
 // annuler transaction
-app.post('/annulerTransaction', (req, res) => {
+app.post('/annulerTransaction',authMiddleware, (req, res) => {
   const { idtransaction } = req.body;
 
   // Démarrer la transaction
@@ -854,7 +935,7 @@ app.post('/annulerTransaction', (req, res) => {
   });
 });
 // transfert effectuer par distributeur
-app.post('/transfertDist', (req, res) => {
+app.post('/transfertDist',authMiddleware, (req, res) => {
   const { idCompte, compteDestinataire, montant } = req.body;
   
   if (!idCompte || !compteDestinataire || !montant || isNaN(montant) || montant <= 0) {
