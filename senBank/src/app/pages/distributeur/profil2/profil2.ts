@@ -31,4 +31,7 @@ export class Profil2 implements OnInit{
   goretrait(){
     this.route.navigate(['/retrait'])
   }
+    gotrans(){
+    this.route.navigate(['/transfertDistributeur'])
+  }
 }

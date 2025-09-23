@@ -1,0 +1,44 @@
+
+        .form-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-title {
+            color: #0d6efd; /* Couleur du titre en bleu */
+            font-weight: bold;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .form-label-custom {
+            color: #0d6efd; /* Couleur des labels en bleu */
+            font-weight: 500;
+        }
+        .form-control-custom {
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            text-align: center; /* Centrer le texte dans les champs de saisie */
+        }
+        .footer-buttons {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .footer-buttons .btn {
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 10px 20px;
+        }
+        .btn-link-custom {
+            color: #0d6efd;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-link-custom:hover {
+            text-decoration: underline;
+        }
