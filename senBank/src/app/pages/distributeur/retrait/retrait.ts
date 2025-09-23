@@ -67,4 +67,13 @@ export class Retrait implements OnInit {
       alert("Veuillez remplir tous les champs correctement !");
     }
   }
+  depot(){
+    this.router.navigate(['depot'])
+  }
+  trans(){
+    this.router.navigate(['transfertDistributeur'])
+  }
+  back(){
+    this.router.navigate(['profilDistributeur'])
+  }
 }

@@ -71,7 +71,8 @@ const db = mysql.createConnection({
     password: '',
     database: 'senbanks'
 })
-// Endpoint pour la connexion (POST)
+
+
 app.post("/connexion", (req, res) => {
   const { numeroCompte, motDePasse } = req.body;
 
@@ -82,7 +83,7 @@ app.post("/connexion", (req, res) => {
   db.query(
     "SELECT * FROM comptes WHERE numeroCompte = ?",
     [numeroCompte],
-    async (err, results) => {
+    (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
 
       if (results.length === 0) {
@@ -99,48 +100,51 @@ app.post("/connexion", (req, res) => {
         return res.status(403).json({ message: "Votre compte est bloqué" });
       }
 
-      // *** Vérification en clair (tel que demandé) ***
-      const isValidPassword = motDePasse === compte.motDePasse;
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Mot de passe invalide" });
-      }
+      // Vérification du mot de passe avec bcrypt
+      bcrypt.compare(motDePasse, compte.motDePasse, (err, isMatch) => {
+        if (err) return res.status(500).json({ message: err.message });
 
-      // Génération du token JWT (assure-toi d'avoir process.env.JWT_SECRET défini)
-      const token = jwt.sign(
-        { idCompte: compte.idCompte, numeroCompte: compte.numeroCompte },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      // Retirer le mot de passe avant d'envoyer la réponse
-      delete compte.motDePasse;
-
-      // Chercher l'utilisateur lié
-      db.query(
-        "SELECT * FROM users WHERE idUser = ?",
-        [compte.idusers],
-        (err, userResults) => {
-          if (err) return res.status(500).json({ message: err.message });
-
-          if (!userResults || userResults.length === 0) {
-            // Option : tu peux renvoyer quand même token+compte si l'utilisateur lié n'existe pas
-            // Ici je renvoie 404 pour être explicite
-            return res.status(404).json({ message: "Utilisateur introuvable" });
-          }
-
-          const user = userResults[0];
-
-          return res.json({
-            message: "Connexion réussie",
-            token,
-            compte,
-            user,
-          });
+        if (!isMatch) {
+          return res.status(401).json({ message: "Mot de passe invalide" });
         }
-      );
+
+        // Génération du token JWT
+        const token = jwt.sign(
+          { idCompte: compte.idCompte, numeroCompte: compte.numeroCompte },
+          process.env.JWT_SECRET,
+          { expiresIn: "1h" }
+        );
+
+        // Supprimer le mot de passe avant d'envoyer
+        const compteSansMdp = { ...compte };
+        delete compteSansMdp.motDePasse;
+
+        // Récupération de l'utilisateur lié
+        db.query(
+          "SELECT * FROM users WHERE idUser = ?",
+          [compte.idusers],
+          (err, userResults) => {
+            if (err) return res.status(500).json({ message: err.message });
+
+            if (!userResults || userResults.length === 0) {
+              return res.status(404).json({ message: "Utilisateur introuvable" });
+            }
+
+            const user = userResults[0];
+
+            return res.json({
+              message: "Connexion réussie",
+              token,
+              compte: compteSansMdp,
+              user,
+            });
+          }
+        );
+      });
     }
   );
 });
+
 // connexion pour agent
 app.post('/connexionAgent',(req,res)=>{
   const {email,mdp} = req.body
