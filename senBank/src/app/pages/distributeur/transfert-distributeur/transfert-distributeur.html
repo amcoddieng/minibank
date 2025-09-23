@@ -1,3 +1,50 @@
+
+<div class="container mt-3 text-white shadow" style="background-color: #2E88C7;">
+  <div class="row text-center  ">
+    <div class="card-body " style="background-color: #2E88C7;">
+      <!-- Solde -->
+      <h4 class="fw-bold  mb-3">
+        {{compte.solde}} F
+        <i class="bi bi-eye-slash"></i>
+      </h4>
+
+      <!-- QR Code et profil -->
+      <div class="row align-items-center">
+        <!-- Profil -->
+        <div class="col-12 col-md-7 d-flex align-items-center mb-3 mb-md-0">
+          <!-- Photo -->
+          <div class="me-3" style="flex:0 0 70px;">
+            <img src="icones/{{user.photo}}" alt="Photo" class="img-fluid rounded border">
+          </div>
+          <!-- Infos -->
+          <div class="text-start">
+            <p class="mb-1"><small>N° Compte : <b>{{compte.numeroCompte}}</b></small></p>
+            <p class="mb-1"><small>Nom : <b>{{user.prenom}} {{user.nom}}</b></small></p>
+            <p class="mb-0"><small>Rôle : <b>{{user.role}}</b></small></p>
+          </div>
+        </div>
+      </div>
+    </div> 
+  </div>
+</div>
+<!-- menu bouton transfert et modifier mot de passe -->
+<div class="container d-flex justify-content-center mt-3">
+      <button type="button" (click)="depot()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        depot
+    </button>
+      <button type="button" (click)="retrait()" class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        retrait
+    </button>
+    <button type="button"  class="btn fw-bold w-25 text-white me-2" style="background-color: #2E88C7;">
+        Transfert
+    </button>
+
+    <button class="btn fw-bold w-25 text-white" style="background-color: #2E88C7;">
+        Annuler transaction
+    </button>
+</div>
+
+
 <div class="form-container">
     <h2 class="form-title">Transferez de l'argent</h2>
     <form [formGroup]="transForm">
@@ -24,7 +71,7 @@
     
     <div class="footer-buttons">
         <button type="button" (click)="tranfert()" class="btn btn-primary me-5" >Envoyer</button>
-        <button type="button" class="btn btn-primary" >Annuler</button>
+        <button type="button" (click)="back()" class="btn btn-primary" >Annuler</button>
     </div>
 </form>
 </div>

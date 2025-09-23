@@ -51,4 +51,13 @@ export class TransfertDistributeur implements OnInit{
       idCompte : new FormControl("",Validators.required)
     })
   }
+  depot(){
+    this.route.navigate(['depot'])
+  }
+  retrait(){
+    this.route.navigate(['retrait'])
+  }
+  back(){
+    this.route.navigate(['profilDistributeur'])
+  }
 }
